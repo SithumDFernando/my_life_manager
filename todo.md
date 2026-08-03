@@ -1,0 +1,23 @@
+# MyLife Manager — Project TODO
+
+- [x] Design app logo and branding
+- [x] Update theme.config.js with light minimalistic palette
+- [x] Update icon-symbol.tsx with all needed icon mappings
+- [x] Create database schema for all modules
+- [x] Build PIN Setup/Entry screen with AsyncStorage persistence
+- [x] Build Dashboard (Home) screen with module cards and stats
+- [x] Build Daily To-Do screen with tasks, checkbox, carry-over from yesterday, achievement report
+- [x] Build Accounts & Credentials module (add/view/edit/delete, categories, password mask)
+- [x] Build Subscriptions module (add/view/edit, cost tracking, renewal dates)
+- [x] Build Bio Data screen (name, education, DOB, phone, LinkedIn, GitHub, HackerRank)
+- [x] Build Notes module (add/view/edit/delete, categories)
+- [x] Build Competitions & Events module (dates, venues, results)
+- [x] Build Venues module (location tracking)
+- [x] Build Reading Tracker (books, research papers, progress, ratings, notes)
+- [x] Build Achievements module (hackathon wins, awards, linked competitions)
+- [x] Build Projects module (ongoing/finished, categories, GitHub repos, awards)
+- [x] Build Service-Account Mapping (which Google/GitHub account for which service in which project)
+- [x] Build bottom tab navigation (Dashboard, Daily, Projects, Tracker, More)
+- [x] Add haptic feedback on primary actions
+- [x] Test all flows end-to-end
+- [x] Final polish and checkpoint

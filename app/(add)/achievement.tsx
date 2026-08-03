@@ -1,0 +1,94 @@
+import { useState } from "react";
+import { ScrollView, Text, View, Pressable, TextInput } from "react-native";
+import { useRouter } from "expo-router";
+import { ScreenContainer } from "@/components/screen-container";
+import { IconSymbol } from "@/components/ui/icon-symbol";
+import { achievements as achStorage } from "@/lib/storage";
+import type { Achievement } from "@/lib/types";
+import * as Haptics from "expo-haptics";
+import { Platform } from "react-native";
+
+const TYPE_OPTIONS: { key: Achievement["type"]; label: string }[] = [
+  { key: "hackathon", label: "Hackathon" },
+  { key: "competition", label: "Competition" },
+  { key: "certification", label: "Certification" },
+  { key: "award", label: "Award" },
+  { key: "milestone", label: "Milestone" },
+  { key: "other", label: "Other" },
+];
+
+export default function AddAchievementScreen() {
+  const router = useRouter();
+  const [form, setForm] = useState({
+    title: "", type: "hackathon" as Achievement["type"],
+    date: "", place: "", prize: "", competitionId: "", description: "",
+  });
+
+  const handleSave = async () => {
+    if (!form.title.trim()) return;
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    await achStorage.add(form);
+    router.back();
+  };
+
+  return (
+    <ScreenContainer className="px-5">
+      <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 16, paddingBottom: 12, justifyContent: "space-between" }}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Pressable onPress={() => router.back()} style={({ pressed }) => ({ padding: 4, opacity: pressed ? 0.6 : 1 })}>
+            <IconSymbol name="arrow.left" size={24} color="#1A1A2E" />
+          </Pressable>
+          <Text style={{ fontSize: 20, fontWeight: "700", color: "#1A1A2E", marginLeft: 12 }}>Add Achievement</Text>
+        </View>
+        <Pressable onPress={handleSave} style={({ pressed }) => ({ padding: 8, borderRadius: 10, backgroundColor: "#5B8DEF", opacity: pressed ? 0.8 : 1 })}>
+          <Text style={{ fontSize: 14, fontWeight: "600", color: "#FFFFFF" }}>Save</Text>
+        </Pressable>
+      </View>
+
+      <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
+        <View style={{ backgroundColor: "#FFFFFF", borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: "#E8EAED", marginBottom: 16 }}>
+          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6 }}>Type</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 12 }}>
+            {TYPE_OPTIONS.map((opt) => (
+              <Pressable key={opt.key} onPress={() => setForm({ ...form, type: opt.key })}
+                style={({ pressed }) => ({ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10,
+                  backgroundColor: form.type === opt.key ? "#5B8DEF" : "#F7F8FA", opacity: pressed ? 0.85 : 1 })}>
+                <Text style={{ fontSize: 12, fontWeight: "600", color: form.type === opt.key ? "#FFF" : "#8B8FA3" }}>{opt.label}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+
+          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6 }}>Title</Text>
+          <TextInput value={form.title} onChangeText={(v) => setForm({ ...form, title: v })}
+            placeholder="e.g., 1st Place - TechHack 2024" style={inputStyle} placeholderTextColor="#8B8FA3" />
+
+          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6, marginTop: 12 }}>Date</Text>
+          <TextInput value={form.date} onChangeText={(v) => setForm({ ...form, date: v })}
+            placeholder="YYYY-MM-DD" style={inputStyle} placeholderTextColor="#8B8FA3" />
+
+          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6, marginTop: 12 }}>Place / Position</Text>
+          <TextInput value={form.place} onChangeText={(v) => setForm({ ...form, place: v })}
+            placeholder="e.g., 1st Place, Top 10" style={inputStyle} placeholderTextColor="#8B8FA3" />
+
+          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6, marginTop: 12 }}>Prize (optional)</Text>
+          <TextInput value={form.prize} onChangeText={(v) => setForm({ ...form, prize: v })}
+            placeholder="e.g., $5000, Certificate" style={inputStyle} placeholderTextColor="#8B8FA3" />
+
+          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6, marginTop: 12 }}>Related Competition (optional)</Text>
+          <TextInput value={form.competitionId} onChangeText={(v) => setForm({ ...form, competitionId: v })}
+            placeholder="Competition name or ID" style={inputStyle} placeholderTextColor="#8B8FA3" />
+
+          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6, marginTop: 12 }}>Description</Text>
+          <TextInput value={form.description} onChangeText={(v) => setForm({ ...form, description: v })}
+            placeholder="Details about the achievement..."
+            style={{ ...inputStyle, minHeight: 100, textAlignVertical: "top" }} placeholderTextColor="#8B8FA3" multiline />
+        </View>
+      </ScrollView>
+    </ScreenContainer>
+  );
+}
+
+const inputStyle = {
+  backgroundColor: "#F7F8FA", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
+  fontSize: 14, color: "#1A1A2E",
+};
