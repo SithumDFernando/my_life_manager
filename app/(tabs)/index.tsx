@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import { ScrollView, Text, View, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -24,11 +25,7 @@ export default function HomeScreen() {
     readings: 0,
   });
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     const [accs, subs, projs, tsks, reads] = await Promise.all([
       accounts.getAll(),
       subscriptions.getAll(),
@@ -43,7 +40,11 @@ export default function HomeScreen() {
       tasks: tsks.filter((t) => !t.completed).length,
       readings: reads.filter((r) => r.status === "reading").length,
     });
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => { loadData(); }, [loadData])
+  );
 
   const today = new Date();
   const greeting = today.getHours() < 12 ? "Good morning" : today.getHours() < 17 ? "Good afternoon" : "Good evening";

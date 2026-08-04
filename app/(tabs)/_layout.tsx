@@ -38,21 +38,21 @@ export default function TabLayout() {
         name="daily"
         options={{
           title: "Daily",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="event_note" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="list.bullet" color={color} />,
         }}
       />
       <Tabs.Screen
         name="projects"
         options={{
           title: "Projects",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="folder_special" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="folder.fill" color={color} />,
         }}
       />
       <Tabs.Screen
         name="tracker"
         options={{
           title: "Tracker",
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="bookmarks" color={color} />,
+          tabBarIcon: ({ color }) => <IconSymbol size={28} name="chart.bar.fill" color={color} />,
         }}
       />
       <Tabs.Screen

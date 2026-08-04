@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -12,12 +13,14 @@ export default function VenuesScreen() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ name: "", address: "", city: "", notes: "" });
 
-  useEffect(() => { loadVenues(); }, []);
-
-  const loadVenues = async () => {
+  const loadVenues = useCallback(async () => {
     const data = await venuesStorage.getAll();
     setVenList(data.sort((a, b) => b.createdAt.localeCompare(a.createdAt)));
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => { loadVenues(); }, [loadVenues])
+  );
 
   const handleAdd = async () => {
     if (!form.name.trim()) return;

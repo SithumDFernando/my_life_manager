@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -23,12 +24,14 @@ export default function EventsScreen() {
     title: "", description: "", date: "", venueId: "", type: "meeting" as Event["type"], notes: "",
   });
 
-  useEffect(() => { loadEvents(); }, []);
-
-  const loadEvents = async () => {
+  const loadEvents = useCallback(async () => {
     const data = await eventsStorage.getAll();
     setEvts(data.sort((a, b) => b.date.localeCompare(a.date)));
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => { loadEvents(); }, [loadEvents])
+  );
 
   const handleAdd = async () => {
     if (!form.title.trim() || !form.date.trim()) return;

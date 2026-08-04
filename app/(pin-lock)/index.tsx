@@ -4,9 +4,11 @@ import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { pinStorage, settings as settingsStorage } from "@/lib/storage";
+import { useColors } from "@/hooks/use-colors";
 
 export default function PinLockScreen() {
   const router = useRouter();
+  const colors = useColors();
   const [pin, setPin] = useState("");
   const [confirmPin, setConfirmPin] = useState("");
   const [step, setStep] = useState<"enter" | "confirm" | "set">("enter");
@@ -105,14 +107,14 @@ export default function PinLockScreen() {
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
         {/* Icon */}
         <View style={{ marginBottom: 24, opacity: 0.6 }}>
-          <IconSymbol name="lock.fill" size={48} color="#5B8DEF" />
+          <IconSymbol name="lock.fill" size={48} color={colors.tint} />
         </View>
 
         {/* Title */}
-        <Text style={{ fontSize: 24, fontWeight: "700", color: "#1A1A2E", marginBottom: 8 }}>
+        <Text style={{ fontSize: 24, fontWeight: "700", color: colors.text, marginBottom: 8 }}>
           {getTitle()}
         </Text>
-        <Text style={{ fontSize: 15, color: "#8B8FA3", textAlign: "center", marginBottom: 32 }}>
+        <Text style={{ fontSize: 15, color: colors.muted, textAlign: "center", marginBottom: 32 }}>
           {getSubtitle()}
         </Text>
 
@@ -125,7 +127,7 @@ export default function PinLockScreen() {
                 width: 16,
                 height: 16,
                 borderRadius: 8,
-                backgroundColor: i < getCurrentPin().length ? "#5B8DEF" : "#E8EAED",
+                backgroundColor: i < getCurrentPin().length ? colors.tint : colors.border,
               }}
             />
           ))}
@@ -133,7 +135,7 @@ export default function PinLockScreen() {
 
         {/* Error */}
         {error ? (
-          <Text style={{ fontSize: 14, color: "#F87171", marginBottom: 16 }}>{error}</Text>
+          <Text style={{ fontSize: 14, color: colors.error, marginBottom: 16 }}>{error}</Text>
         ) : null}
 
         {/* Numpad */}
@@ -159,13 +161,13 @@ export default function PinLockScreen() {
                     marginHorizontal: 12,
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundColor: pressed ? "#E8EAED" : "transparent",
+                    backgroundColor: pressed ? colors.border : "transparent",
                   })}
                 >
                   {key === "del" ? (
-                    <IconSymbol name="xmark" size={24} color="#1A1A2E" />
+                    <IconSymbol name="xmark" size={24} color={colors.text} />
                   ) : key === "" ? null : (
-                    <Text style={{ fontSize: 28, fontWeight: "400", color: "#1A1A2E" }}>{key}</Text>
+                    <Text style={{ fontSize: 28, fontWeight: "400", color: colors.text }}>{key}</Text>
                   )}
                 </Pressable>
               ))}

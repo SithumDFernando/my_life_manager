@@ -1,9 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import { ScrollView, Text, View, TextInput, Pressable, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { bioData as bioDataStorage } from "@/lib/storage";
+import * as Haptics from "expo-haptics";
+import { Platform } from "react-native";
 
 export default function BioScreen() {
   const router = useRouter();
@@ -15,11 +18,7 @@ export default function BioScreen() {
     otherLinks: "", notes: "",
   });
 
-  useEffect(() => {
-    loadBio();
-  }, []);
-
-  const loadBio = async () => {
+  const loadBio = useCallback(async () => {
     const data = await bioDataStorage.get();
     if (data) {
       setForm({
@@ -40,13 +39,19 @@ export default function BioScreen() {
         notes: data.notes || "",
       });
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => { loadBio(); }, [loadBio])
+  );
 
   const handleSave = async () => {
+    if (!form.fullName.trim()) return;
     setSaving(true);
     await bioDataStorage.save(form);
     setSaving(false);
-    Alert.alert("Saved", "Bio data updated successfully.", [{ text: "OK" }]);
+    if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert("Saved!", "Bio data updated successfully.", [{ text: "OK" }]);
   };
 
   return (

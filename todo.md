@@ -21,3 +21,21 @@
 - [x] Add haptic feedback on primary actions
 - [x] Test all flows end-to-end
 - [x] Final polish and checkpoint
+# Upgrade v2 — Bug Fixes & Improvements
+
+- [x] Fix real-time data refresh (useFocusEffect on all screens)
+- [x] Add edit/update for Accounts module
+- [x] Add edit/update for Subscriptions module
+- [x] Add edit/update for Competitions module
+- [x] Add edit/update for Reading module
+- [x] Add edit/update for Achievements module
+- [x] Fix dark mode visibility (useColors tokens on all screens)
+- [x] Fix missing tab icons
+- [x] Add Backup/Restore (export/import JSON)
+- [x] Fix Bio Data save feedback + add profile view on More tab
+- [x] Link project service accounts to existing accounts
+- [x] Dashboard auto-refresh on focus
+- [x] Project edit functionality
+- [x] Copy username/password to clipboard
+- [x] Proper PIN Change flow (old PIN → new PIN)
+- [x] Test all upgrades

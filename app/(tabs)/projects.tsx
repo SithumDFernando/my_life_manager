@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal, FlatList } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -27,18 +28,22 @@ export default function ProjectsScreen() {
   const [showAdd, setShowAdd] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [showServices, setShowServices] = useState(false);
+  const [linkedAccounts, setLinkedAccounts] = useState<{ id: string; name: string; username: string; category: string }[]>([]);
   const [form, setForm] = useState({
     title: "", description: "", category: "", status: "ongoing" as Project["status"],
     githubRepo: "", startDate: "", endDate: "", techStack: "", notes: "",
     serviceAccounts: [] as ProjectServiceAccount[],
   });
 
-  useEffect(() => { loadProjects(); }, []);
-
-  const loadProjects = async () => {
-    const data = await projectsStorage.getAll();
+    const loadProjects = useCallback(async () => {
+    const [data, accs] = await Promise.all([projectsStorage.getAll(), accounts.getAll()]);
     setProjects(data.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
-  };
+    setLinkedAccounts(accs.map((a) => ({ id: a.id, name: a.name, username: a.username, category: a.category })));
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => { loadProjects(); }, [loadProjects])
+  );
 
   const handleAdd = async () => {
     if (!form.title.trim()) return;
@@ -202,6 +207,7 @@ export default function ProjectsScreen() {
               <ServiceAccountEditor
                 serviceAccounts={form.serviceAccounts}
                 onChange={(sa) => setForm({ ...form, serviceAccounts: sa })}
+                linkedAccounts={linkedAccounts}
               />
 
               <View style={{ flexDirection: "row", gap: 12, marginTop: 20 }}>
@@ -289,61 +295,121 @@ export default function ProjectsScreen() {
 function ServiceAccountEditor({
   serviceAccounts,
   onChange,
+  linkedAccounts,
 }: {
   serviceAccounts: ProjectServiceAccount[];
   onChange: (accounts: ProjectServiceAccount[]) => void;
+  linkedAccounts: { id: string; name: string; username: string; category: string }[];
 }) {
-  const [newService, setNewService] = useState("");
-  const [newEmail, setNewEmail] = useState("");
-
-  const handleAdd = () => {
-    if (!newService.trim() || !newEmail.trim()) return;
-    onChange([...serviceAccounts, { service: newService.trim(), accountEmail: newEmail.trim() }]);
-    setNewService("");
-    setNewEmail("");
-  };
+  const [showAccountPicker, setShowAccountPicker] = useState(false);
+  const [selectedService, setSelectedService] = useState("");
 
   const handleRemove = (index: number) => {
     const updated = serviceAccounts.filter((_, i) => i !== index);
     onChange(updated);
   };
 
+  const handlePickAccount = (account: typeof linkedAccounts[0]) => {
+    if (!selectedService.trim()) return;
+    onChange([...serviceAccounts, { service: selectedService.trim(), accountEmail: account.username, accountId: account.id }]);
+    setSelectedService("");
+    setShowAccountPicker(false);
+  };
+
+  const handleAddFreeText = () => {
+    if (!selectedService.trim()) return;
+    onChange([...serviceAccounts, { service: selectedService.trim(), accountEmail: "" }]);
+    setSelectedService("");
+  };
+
   return (
     <View>
       {serviceAccounts.map((sa, i) => (
         <View key={i} style={{ flexDirection: "row", alignItems: "center", padding: 8, backgroundColor: "#F7F8FA", borderRadius: 8, marginBottom: 6 }}>
-          <Text style={{ fontSize: 13, color: "#1A1A2E", flex: 1 }}>{sa.service}</Text>
-          <Text style={{ fontSize: 12, color: "#5B8DEF", marginRight: 8 }}>{sa.accountEmail}</Text>
-          <Pressable onPress={() => handleRemove(i)}>
+          <IconSymbol name="cloud.fill" size={14} color="#5B8DEF" />
+          <Text style={{ fontSize: 13, color: "#1A1A2E", flex: 1, marginLeft: 6 }}>{sa.service}</Text>
+          {sa.accountId ? (
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: "#34D399", marginRight: 4 }} />
+              <Text style={{ fontSize: 12, color: "#5B8DEF" }}>{sa.accountEmail}</Text>
+            </View>
+          ) : (
+            <Text style={{ fontSize: 12, color: "#8B8FA3" }}>{sa.accountEmail || "No account"}</Text>
+          )}
+          <Pressable onPress={() => handleRemove(i)} style={{ marginLeft: 4, padding: 2 }}>
             <IconSymbol name="xmark" size={16} color="#F87171" />
           </Pressable>
         </View>
       ))}
+
+      {/* Add new service-account mapping */}
       <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
         <TextInput
           placeholder="Service name"
-          value={newService}
-          onChangeText={setNewService}
+          value={selectedService}
+          onChangeText={setSelectedService}
           style={{ flex: 1, backgroundColor: "#F7F8FA", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, fontSize: 12, color: "#1A1A2E" }}
           placeholderTextColor="#8B8FA3"
         />
-        <TextInput
-          placeholder="Account email"
-          value={newEmail}
-          onChangeText={setNewEmail}
-          onSubmitEditing={handleAdd}
-          style={{ flex: 1, backgroundColor: "#F7F8FA", borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8, fontSize: 12, color: "#1A1A2E" }}
-          placeholderTextColor="#8B8FA3"
-        />
-        <Pressable onPress={handleAdd} style={({ pressed }) => ({
+        <Pressable onPress={() => setShowAccountPicker(true)} disabled={!selectedService.trim()} style={({ pressed }) => ({
           width: 36, height: 36, borderRadius: 8, backgroundColor: "#5B8DEF",
-          alignItems: "center", justifyContent: "center", opacity: pressed ? 0.8 : 1,
+          alignItems: "center", justifyContent: "center", opacity: pressed || !selectedService.trim() ? 0.5 : 1,
         })}>
-          <IconSymbol name="plus" size={18} color="#FFFFFF" />
+          <IconSymbol name="link" size={18} color="#FFFFFF" />
         </Pressable>
       </View>
+
+      {/* Account Picker Modal */}
+      <Modal visible={showAccountPicker} animationType="slide" transparent onRequestClose={() => setShowAccountPicker(false)}>
+        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
+          <View style={{ backgroundColor: "#FFFFFF", borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 30, maxHeight: "70%" }}>
+            <View style={{ alignItems: "center", marginBottom: 16 }}>
+              <View style={{ width: 40, height: 4, backgroundColor: "#E8EAED", borderRadius: 2 }} />
+            </View>
+            <Text style={{ fontSize: 16, fontWeight: "700", color: "#1A1A2E", marginBottom: 4 }}>Link Account</Text>
+            <Text style={{ fontSize: 12, color: "#8B8FA3", marginBottom: 12 }}>Select an account for "{selectedService}"</Text>
+            <ScrollView style={{ maxHeight: 280 }}>
+              {linkedAccounts.length === 0 ? (
+                <Text style={{ fontSize: 13, color: "#8B8FA3", textAlign: "center", paddingVertical: 20 }}>
+                  No accounts saved. Add accounts first in the Tracker tab.
+                </Text>
+              ) : (
+                linkedAccounts.map((acc) => (
+                  <Pressable
+                    key={acc.id}
+                    onPress={() => handlePickAccount(acc)}
+                    style={({ pressed }) => ({
+                      flexDirection: "row", alignItems: "center", padding: 12,
+                      backgroundColor: pressed ? "#F7F8FA" : "#FFFFFF",
+                      borderBottomWidth: 0.5, borderBottomColor: "#E8EAED",
+                    })}
+                  >
+                    <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: "#5B8DEF15", alignItems: "center", justifyContent: "center", marginRight: 10 }}>
+                      <IconSymbol name="person.fill" size={16} color="#5B8DEF" />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={{ fontSize: 14, fontWeight: "600", color: "#1A1A2E" }}>{acc.name}</Text>
+                      <Text style={{ fontSize: 12, color: "#8B8FA3" }}>{acc.username}</Text>
+                    </View>
+                    <Text style={{ fontSize: 11, color: "#5B8DEF", paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4, backgroundColor: "#5B8DEF15" }}>{acc.category}</Text>
+                  </Pressable>
+                ))
+              )}
+            </ScrollView>
+            <View style={{ flexDirection: "row", gap: 10, marginTop: 14 }}>
+              <Pressable onPress={handleAddFreeText} style={{ flex: 1, backgroundColor: "#F7F8FA", borderRadius: 10, paddingVertical: 12, alignItems: "center" }}>
+                <Text style={{ fontSize: 13, fontWeight: "600", color: "#8B8FA3" }}>Skip</Text>
+              </Pressable>
+              <Pressable onPress={() => setShowAccountPicker(false)} style={{ flex: 1, backgroundColor: "#5B8DEF", borderRadius: 10, paddingVertical: 12, alignItems: "center" }}>
+                <Text style={{ fontSize: 13, fontWeight: "600", color: "#FFFFFF" }}>Cancel</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
       <Text style={{ fontSize: 11, color: "#8B8FA3", marginTop: 6 }}>
-        Add which Google/GitHub account you use for each service in this project
+        Link a saved account or type manually. Linked accounts show a green indicator.
       </Text>
     </View>
   );

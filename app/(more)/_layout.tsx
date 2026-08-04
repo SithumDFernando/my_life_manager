@@ -8,6 +8,7 @@ export default function MoreLayout() {
       <Stack.Screen name="competitions" />
       <Stack.Screen name="events" />
       <Stack.Screen name="venues" />
+      <Stack.Screen name="backup" />
     </Stack>
   );
 }

@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
+import { useFocusEffect } from "expo-router";
 import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
@@ -13,12 +14,14 @@ export default function NotesScreen() {
   const [editNote, setEditNote] = useState<Note | null>(null);
   const [form, setForm] = useState({ title: "", content: "", category: "" });
 
-  useEffect(() => { loadNotes(); }, []);
-
-  const loadNotes = async () => {
+  const loadNotes = useCallback(async () => {
     const data = await notesStorage.getAll();
     setNotes(data.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => { loadNotes(); }, [loadNotes])
+  );
 
   const handleAdd = async () => {
     if (!form.title.trim()) return;
