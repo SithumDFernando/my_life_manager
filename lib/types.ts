@@ -193,4 +193,96 @@ export interface AppSettings {
   pinSet: boolean;
   lastOpenDate: string;
   lastReportDate?: string;
+  gamification?: GamificationProfile;
+}
+
+// ========================
+// HABITS & GAMIFICATION
+// ========================
+
+// Habit frequency configuration
+export type HabitFrequencyType = "daily" | "weekly";
+
+export type HabitType = "positive" | "avoidance" | "numeric";
+
+export interface HabitFrequency {
+  type: HabitFrequencyType;
+  /** For weekly: how many times per week (e.g., 3 for "3x/week"). Ignored for daily. */
+  weeklyTarget?: number;
+}
+
+// Core Habit entity
+export interface Habit {
+  id: string;
+  name: string;
+  /** Free-text category for grouping (e.g., "Fitness", "Career", "Health") */
+  category: string;
+  /** The interaction model: positive (tap to check), avoidance (shield), numeric (stepper) */
+  habitType: HabitType;
+  /** Frequency configuration */
+  frequency: HabitFrequency;
+  /** For numeric habits: the daily target value (e.g., 3000 for 3000ml water) */
+  numericTarget?: number;
+  /** For numeric habits: the unit label (e.g., "ml", "steps", "minutes") */
+  numericUnit?: string;
+  /** Quick-add chip values for numeric habits (e.g., [250, 500, 1000] for water) */
+  numericQuickAdds?: number[];
+  /** Optional grouping label for identity targets (e.g., "Get Shredded") */
+  targetName?: string;
+  /** Custom color hex for the habit card accent (optional) */
+  color?: string;
+  /** Emoji icon for the habit (e.g., "🏋️", "💧", "📖") */
+  emoji?: string;
+  /** Soft-delete: hidden from active board but logs/XP retained */
+  archived: boolean;
+  /** ISO date string of creation */
+  createdAt: string;
+  /** ISO date string of last update */
+  updatedAt: string;
+}
+
+// Daily log entry for a habit (keyed by habitId + date for uniqueness)
+export interface HabitLog {
+  id: string;
+  habitId: string;
+  /** ISO date string YYYY-MM-DD (device local time) */
+  date: string;
+  /** For positive: true/false. For avoidance: true = safe, false = slip. */
+  completed: boolean;
+  /** For numeric habits: the accumulated value for the day (e.g., 2500 ml) */
+  numericValue?: number;
+  /** Optional note for the day (e.g., "Push day" or "Slip: ate cake at party") */
+  note?: string;
+  /** ISO timestamp of when the log was created/last updated */
+  loggedAt: string;
+}
+
+// Aggregated stats for a single habit (computed and cached)
+export interface HabitStats {
+  habitId: string;
+  /** Current consecutive streak (days for daily, weeks for weekly) */
+  currentStreak: number;
+  /** Longest streak ever achieved */
+  longestStreak: number;
+  /** Total completions all-time */
+  totalCompletions: number;
+  /** Total XP earned from this habit */
+  totalXP: number;
+  /** Number of streak shields remaining (max 1, refills Monday) */
+  streakShieldsRemaining: number;
+  /** ISO date string of last shield refill (Monday check) */
+  lastShieldRefillDate?: string;
+  /** Date of last completion (for streak gap detection) */
+  lastCompletionDate?: string;
+  /** 30-day rolling consistency percentage (0-100) */
+  consistencyScore: number;
+  /** ISO date string of last stats recalculation */
+  lastCalculated: string;
+}
+
+// User-level gamification profile (singleton, stored in AppSettings)
+export interface GamificationProfile {
+  totalXP: number;
+  level: number;
+  levelTitle: string;
 }

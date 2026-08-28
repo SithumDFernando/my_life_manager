@@ -5,6 +5,8 @@ import { ScrollView, Text, View, Pressable } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { accounts, subscriptions, projects, tasks, readingItems } from "@/lib/storage";
+import { habitStats } from "@/lib/habit-storage";
+import type { GamificationProfile } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
 
 interface ModuleCard {
@@ -26,14 +28,16 @@ export default function HomeScreen() {
     tasks: 0,
     readings: 0,
   });
+  const [gamification, setGamification] = useState<GamificationProfile>({ totalXP: 0, level: 1, levelTitle: "Novice Initiate" });
 
   const loadData = useCallback(async () => {
-    const [accs, subs, projs, tsks, reads] = await Promise.all([
+    const [accs, subs, projs, tsks, reads, profile] = await Promise.all([
       accounts.getAll(),
       subscriptions.getAll(),
       projects.getAll(),
       tasks.getAll(),
       readingItems.getAll(),
+      habitStats.getProfile(),
     ]);
     setCounts({
       accounts: accs.length,
@@ -42,6 +46,7 @@ export default function HomeScreen() {
       tasks: tsks.filter((t) => !t.completed).length,
       readings: reads.filter((r) => r.status === "reading").length,
     });
+    setGamification(profile);
   }, []);
 
   useFocusEffect(
@@ -52,9 +57,10 @@ export default function HomeScreen() {
   const greeting = today.getHours() < 12 ? "Good morning" : today.getHours() < 17 ? "Good afternoon" : "Good evening";
 
   const modules: ModuleCard[] = [
+    { title: "Habits", subtitle: `Level ${gamification.level}`, icon: "bolt.fill", iconColor: "#F59E0B", route: "/(tabs)/habits" },
     { title: "Accounts", subtitle: `${counts.accounts} saved`, icon: "key.fill", iconColor: colors.primary, route: "/(tabs)/tracker?tab=accounts", count: counts.accounts },
     { title: "Subscriptions", subtitle: `${counts.subscriptions} active`, icon: "money.dollar.fill", iconColor: colors.success, route: "/(tabs)/tracker?tab=subscriptions", count: counts.subscriptions },
-    { title: "Projects", subtitle: `${counts.projects} ongoing`, icon: "folder_special", iconColor: colors.primary, route: "/(tabs)/projects", count: counts.projects },
+    { title: "Projects", subtitle: `${counts.projects} ongoing`, icon: "folder_special", iconColor: colors.primary, route: "/(tabs)/tracker?tab=projects", count: counts.projects },
     { title: "Daily Tasks", subtitle: `${counts.tasks} pending`, icon: "event_note", iconColor: colors.warning, route: "/(tabs)/daily", count: counts.tasks },
     { title: "Reading", subtitle: `${counts.readings} in progress`, icon: "book.fill", iconColor: colors.error, route: "/(tabs)/tracker?tab=reading", count: counts.readings },
     { title: "Competitions", subtitle: "Events & contests", icon: "trophy.fill", iconColor: colors.warning, route: "/(more)/competitions" },
@@ -77,7 +83,7 @@ export default function HomeScreen() {
 
         {/* Quick Stats */}
         <View style={{ flexDirection: "row", gap: 12, marginBottom: 28 }}>
-          <QuickStat label="Accounts" value={counts.accounts} color={colors.primary} bgColor={colors.surface} textColor={colors.muted} />
+          <QuickStat label={`XP \u2022 Lvl ${gamification.level}`} value={gamification.totalXP} color="#F59E0B" bgColor={colors.surface} textColor={colors.muted} />
           <QuickStat label="Active" value={counts.subscriptions} color={colors.success} bgColor={colors.surface} textColor={colors.muted} />
           <QuickStat label="Tasks" value={counts.tasks} color={colors.warning} bgColor={colors.surface} textColor={colors.muted} />
         </View>
@@ -116,8 +122,8 @@ export default function HomeScreen() {
 function QuickStat({ label, value, color, bgColor, textColor }: { label: string; value: number; color: string; bgColor: string; textColor: string }) {
   return (
     <View style={{ flex: 1, backgroundColor: bgColor, borderRadius: 12, padding: 12, alignItems: "center" }}>
-      <Text style={{ fontSize: 22, fontWeight: "700", color }}>{value}</Text>
-      <Text style={{ fontSize: 11, color: textColor, marginTop: 2 }}>{label}</Text>
+      <Text style={{ fontSize: 20, fontWeight: "700", color }} numberOfLines={1} adjustsFontSizeToFit>{value}</Text>
+      <Text style={{ fontSize: 11, color: textColor, marginTop: 2 }} numberOfLines={1}>{label}</Text>
     </View>
   );
 }

@@ -87,6 +87,13 @@ const MAPPING = {
   "doc.plaintext": "notes",
   "paperclip": "attach-file",
   "hand.tap.fill": "touch-app",
+  // Habits icons
+  "bolt.fill": "flash-on",
+  "shield.fill": "shield",
+  "flame.fill": "local-fire-department",
+  "chart.line.uptrend.xyaxis": "show-chart",
+  "block": "block",
+  "repeat": "repeat",
 } as unknown as IconMapping;
 
 export function IconSymbol({
