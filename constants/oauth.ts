@@ -45,8 +45,8 @@ export function getApiBaseUrl(): string {
     }
   }
 
-  // Fallback to empty (will use relative URL)
-  return "";
+  // Fallback to valid URL on native/local
+  return "https://api.mylifemanager.local";
 }
 
 export const SESSION_TOKEN_KEY = "app_session_token";

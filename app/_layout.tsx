@@ -57,7 +57,17 @@ function RootNavigation({ trpcClient, queryClient }: { trpcClient: any; queryCli
 }
 
 export default function RootLayout() {
-  const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
+  const initialInsets = useMemo(() => {
+    const raw = initialWindowMetrics?.insets;
+    if (!raw) return DEFAULT_WEB_INSETS;
+    return {
+      top: raw.top ?? 0,
+      right: raw.right ?? 0,
+      bottom: raw.bottom ?? 0,
+      left: raw.left ?? 0,
+    };
+  }, []);
+
   const initialFrame = initialWindowMetrics?.frame ?? DEFAULT_WEB_FRAME;
 
   const [insets, setInsets] = useState<EdgeInsets>(initialInsets);
@@ -69,8 +79,12 @@ export default function RootLayout() {
   }, []);
 
   const handleSafeAreaUpdate = useCallback((metrics: Metrics) => {
-    setInsets(metrics.insets);
-    setFrame(metrics.frame);
+    if (metrics?.insets) {
+      setInsets(metrics.insets);
+    }
+    if (metrics?.frame) {
+      setFrame(metrics.frame);
+    }
   }, []);
 
   useEffect(() => {
@@ -93,18 +107,20 @@ export default function RootLayout() {
   );
   const [trpcClient] = useState(() => createTRPCClient());
 
-  // Ensure minimum 8px padding for top and bottom on mobile
+  // Ensure minimum padding for top and bottom on mobile
   const providerInitialMetrics = useMemo(() => {
-    const metrics = initialWindowMetrics ?? { insets: initialInsets, frame: initialFrame };
+    const rawInsets = initialWindowMetrics?.insets ?? insets ?? DEFAULT_WEB_INSETS;
+    const rawFrame = initialWindowMetrics?.frame ?? frame ?? DEFAULT_WEB_FRAME;
     return {
-      ...metrics,
+      frame: rawFrame,
       insets: {
-        ...metrics.insets,
-        top: Math.max(metrics.insets.top, 16),
-        bottom: Math.max(metrics.insets.bottom, 12),
+        top: Math.max(rawInsets?.top ?? 0, 16),
+        bottom: Math.max(rawInsets?.bottom ?? 0, 12),
+        left: rawInsets?.left ?? 0,
+        right: rawInsets?.right ?? 0,
       },
     };
-  }, [initialInsets, initialFrame]);
+  }, [insets, frame]);
 
   const shouldOverrideSafeArea = Platform.OS === "web";
 
