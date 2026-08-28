@@ -52,14 +52,14 @@ export default function HomeScreen() {
   const greeting = today.getHours() < 12 ? "Good morning" : today.getHours() < 17 ? "Good afternoon" : "Good evening";
 
   const modules: ModuleCard[] = [
-    { title: "Accounts", subtitle: `${counts.accounts} saved`, icon: "key.fill", iconColor: colors.primary, route: "/(tabs)/tracker", count: counts.accounts },
-    { title: "Subscriptions", subtitle: `${counts.subscriptions} active`, icon: "money.dollar.fill", iconColor: colors.success, route: "/(tabs)/tracker", count: counts.subscriptions },
+    { title: "Accounts", subtitle: `${counts.accounts} saved`, icon: "key.fill", iconColor: colors.primary, route: "/(tabs)/tracker?tab=accounts", count: counts.accounts },
+    { title: "Subscriptions", subtitle: `${counts.subscriptions} active`, icon: "money.dollar.fill", iconColor: colors.success, route: "/(tabs)/tracker?tab=subscriptions", count: counts.subscriptions },
     { title: "Projects", subtitle: `${counts.projects} ongoing`, icon: "folder_special", iconColor: colors.primary, route: "/(tabs)/projects", count: counts.projects },
     { title: "Daily Tasks", subtitle: `${counts.tasks} pending`, icon: "event_note", iconColor: colors.warning, route: "/(tabs)/daily", count: counts.tasks },
-    { title: "Reading", subtitle: `${counts.readings} in progress`, icon: "book.fill", iconColor: colors.error, route: "/(tabs)/tracker", count: counts.readings },
-    { title: "Competitions", subtitle: "Events & contests", icon: "trophy.fill", iconColor: colors.warning, route: "/(tabs)/more" },
-    { title: "Achievements", subtitle: "Awards & milestones", icon: "star.fill", iconColor: colors.warning, route: "/(tabs)/tracker" },
-    { title: "Bio Data", subtitle: "Personal info", icon: "person.fill", iconColor: colors.primary, route: "/(tabs)/more" },
+    { title: "Reading", subtitle: `${counts.readings} in progress`, icon: "book.fill", iconColor: colors.error, route: "/(tabs)/tracker?tab=reading", count: counts.readings },
+    { title: "Competitions", subtitle: "Events & contests", icon: "trophy.fill", iconColor: colors.warning, route: "/(more)/competitions" },
+    { title: "Achievements", subtitle: "Awards & milestones", icon: "star.fill", iconColor: colors.warning, route: "/(tabs)/tracker?tab=achievements" },
+    { title: "Bio Data", subtitle: "Personal info", icon: "person.fill", iconColor: colors.primary, route: "/(more)/bio" },
   ];
 
   return (

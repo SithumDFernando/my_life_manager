@@ -1,6 +1,6 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal, FlatList } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { accounts, subscriptions, readingItems, achievements } from "@/lib/storage";
@@ -15,7 +15,8 @@ import { useColors } from "@/hooks/use-colors";
 type TabType = "accounts" | "subscriptions" | "reading" | "achievements";
 
 export default function TrackerScreen() {
-  const [activeTab, setActiveTab] = useState<TabType>("accounts");
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
+  const [activeTab, setActiveTab] = useState<TabType>((tab as TabType) || "accounts");
   const [data, setData] = useState({
     accounts: [] as Account[],
     subscriptions: [] as Subscription[],
@@ -24,6 +25,12 @@ export default function TrackerScreen() {
   });
   const router = useRouter();
   const colors = useColors();
+
+  useEffect(() => {
+    if (tab) {
+      setActiveTab(tab as TabType);
+    }
+  }, [tab]);
 
   const loadData = useCallback(async () => {
     const [accs, subs, reads, achs] = await Promise.all([
@@ -73,7 +80,7 @@ export default function TrackerScreen() {
       </View>
 
       {/* Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginBottom: 16 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginBottom: 16, alignItems: "center" }}>
         {tabs.map((tab) => (
           <Pressable
             key={tab.key}
@@ -144,7 +151,7 @@ function AccountsList({ data, onRefresh, colors }: { data: Account[]; onRefresh:
         style={{ backgroundColor: colors.surface, borderRadius: 12, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14, color: colors.foreground, marginBottom: 10 }}
         placeholderTextColor={colors.muted}
       />
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 14 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 14, alignItems: "center" }}>
         {categories.map((cat) => (
           <Pressable key={cat} onPress={() => setFilterCategory(cat)} style={({ pressed }) => ({
             paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14,

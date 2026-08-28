@@ -101,6 +101,7 @@ export default function DailyScreen() {
   const today = new Date().toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" });
   const completedCount = todayTasks.filter((t) => t.completed).length;
   const totalCount = todayTasks.length;
+  const progressPercent = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   if (loading) {
     return (
@@ -117,12 +118,79 @@ export default function DailyScreen() {
       <View style={{ paddingTop: 16, paddingBottom: 12 }}>
         <Text style={{ fontSize: 14, color: colors.muted }}>{today}</Text>
         <Text style={{ fontSize: 28, fontWeight: "700", color: colors.foreground }}>Daily Tasks</Text>
-        {totalCount > 0 && (
-          <Text style={{ fontSize: 13, color: colors.success, marginTop: 4 }}>
-            {completedCount}/{totalCount} completed
-          </Text>
-        )}
       </View>
+
+      {/* Progress Card */}
+      {totalCount > 0 && (
+        <View
+          style={{
+            backgroundColor: colors.surface,
+            borderRadius: 16,
+            padding: 14,
+            marginBottom: 16,
+            borderWidth: 0.5,
+            borderColor: colors.border,
+          }}
+        >
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <View>
+              <Text style={{ fontSize: 14, fontWeight: "600", color: colors.foreground }}>
+                Today's Progress
+              </Text>
+              <Text style={{ fontSize: 12, color: colors.muted, marginTop: 2 }}>
+                {completedCount} of {totalCount} completed
+              </Text>
+            </View>
+            <View
+              style={{
+                backgroundColor: (progressPercent === 100 ? colors.success : colors.primary) + "20",
+                paddingHorizontal: 10,
+                paddingVertical: 4,
+                borderRadius: 12,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: 13,
+                  fontWeight: "700",
+                  color: progressPercent === 100 ? colors.success : colors.primary,
+                }}
+              >
+                {progressPercent}%
+              </Text>
+            </View>
+          </View>
+
+          {/* Progress Bar Track */}
+          <View
+            style={{
+              height: 8,
+              backgroundColor: colors.border,
+              borderRadius: 4,
+              overflow: "hidden",
+              marginBottom: 8,
+            }}
+          >
+            <View
+              style={{
+                height: "100%",
+                width: `${progressPercent}%`,
+                backgroundColor: progressPercent === 100 ? colors.success : colors.primary,
+                borderRadius: 4,
+              }}
+            />
+          </View>
+
+          {/* Motivational Status Footer */}
+          <Text style={{ fontSize: 12, color: colors.muted }}>
+            {progressPercent === 100
+              ? "All tasks completed! Fantastic work! 🎉"
+              : progressPercent > 0
+              ? `${totalCount - completedCount} task${totalCount - completedCount !== 1 ? "s" : ""} remaining`
+              : "No tasks completed yet. Let's get started!"}
+          </Text>
+        </View>
+      )}
 
       {/* Add Task Input */}
       <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>

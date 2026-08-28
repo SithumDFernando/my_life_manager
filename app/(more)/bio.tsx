@@ -13,6 +13,7 @@ export default function BioScreen() {
   const router = useRouter();
   const colors = useColors();
   const [saving, setSaving] = useState(false);
+  const [initialData, setInitialData] = useState<any>(null);
   const [form, setForm] = useState({
     fullName: "", dateOfBirth: "", phone: "", email: "", address: "",
     education: "", university: "", degree: "",
@@ -23,7 +24,7 @@ export default function BioScreen() {
   const loadBio = useCallback(async () => {
     const data = await bioDataStorage.get();
     if (data) {
-      setForm({
+      const loadedForm = {
         fullName: data.fullName || "",
         dateOfBirth: data.dateOfBirth || "",
         phone: data.phone || "",
@@ -39,7 +40,9 @@ export default function BioScreen() {
         twitter: data.twitter || "",
         otherLinks: data.otherLinks || "",
         notes: data.notes || "",
-      });
+      };
+      setForm(loadedForm);
+      setInitialData(loadedForm);
     }
   }, []);
 
@@ -47,13 +50,16 @@ export default function BioScreen() {
     useCallback(() => { loadBio(); }, [loadBio])
   );
 
+  const hasChanges = initialData ? JSON.stringify(form) !== JSON.stringify(initialData) : true;
+
   const handleSave = async () => {
-    if (!form.fullName.trim()) return;
+    if (!form.fullName.trim() || !hasChanges) return;
     setSaving(true);
     await bioDataStorage.save(form);
+    setInitialData(form);
     setSaving(false);
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    Alert.alert("Saved!", "Bio data updated successfully.", [{ text: "OK" }]);
+    router.replace("/(tabs)/more");
   };
 
   return (
@@ -97,10 +103,10 @@ export default function BioScreen() {
 
         <Pressable
           onPress={handleSave}
-          disabled={saving}
+          disabled={saving || !hasChanges}
           style={({ pressed }) => ({
             backgroundColor: colors.primary, borderRadius: 14, paddingVertical: 14, alignItems: "center",
-            opacity: pressed || saving ? 0.7 : 1, marginBottom: 40,
+            opacity: pressed || saving || !hasChanges ? 0.7 : 1, marginBottom: 40,
           })}
         >
           <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "600" }}>
@@ -132,7 +138,7 @@ function InputField({ label, value, onChangeText, placeholder, multiline, colors
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor={colors.border}
+        placeholderTextColor={colors.muted}
         multiline={multiline}
         numberOfLines={multiline ? 4 : 1}
         style={{

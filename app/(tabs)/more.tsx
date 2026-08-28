@@ -16,12 +16,10 @@ type ThemeOption = "light" | "dark" | "system";
 export default function MoreScreen() {
   const router = useRouter();
   const colors = useColors();
-  const { colorScheme, setColorScheme } = useThemeContext();
-  const systemScheme = useSystemColorScheme() ?? "light";
+  const { colorScheme, mode, setMode } = useThemeContext();
   const [bio, setBio] = useState<any>(null);
   const [showChangePin, setShowChangePin] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
-  const [themeMode, setThemeMode] = useState<ThemeOption>(colorScheme === systemScheme ? "system" : colorScheme);
   const [oldPin, setOldPin] = useState("");
   const [newPin, setNewPin] = useState("");
   const [confirmNewPin, setConfirmNewPin] = useState("");
@@ -63,13 +61,8 @@ export default function MoreScreen() {
     }
   };
 
-  const handleThemeChange = (mode: ThemeOption) => {
-    setThemeMode(mode);
-    if (mode === "system") {
-      setColorScheme(systemScheme as ColorScheme);
-    } else {
-      setColorScheme(mode as ColorScheme);
-    }
+  const handleThemeChange = (newMode: ThemeOption) => {
+    setMode(newMode);
     setShowThemePicker(false);
   };
 
@@ -201,17 +194,17 @@ export default function MoreScreen() {
                 onPress={() => handleThemeChange(opt.key)}
                 style={({ pressed }) => ({
                   flexDirection: "row", alignItems: "center", padding: 14, borderRadius: 12,
-                  backgroundColor: themeMode === opt.key ? colors.primary + "15" : colors.surface,
+                  backgroundColor: mode === opt.key ? colors.primary + "15" : colors.surface,
                   marginBottom: 8, opacity: pressed ? 0.85 : 1,
-                  borderWidth: themeMode === opt.key ? 1.5 : 0,
-                  borderColor: themeMode === opt.key ? colors.primary : "transparent",
+                  borderWidth: mode === opt.key ? 1.5 : 0,
+                  borderColor: mode === opt.key ? colors.primary : "transparent",
                 })}
               >
-                <IconSymbol name={opt.icon} size={20} color={themeMode === opt.key ? colors.primary : colors.muted} />
-                <Text style={{ fontSize: 15, fontWeight: "600", color: themeMode === opt.key ? colors.primary : colors.foreground, marginLeft: 12 }}>
+                <IconSymbol name={opt.icon} size={20} color={mode === opt.key ? colors.primary : colors.muted} />
+                <Text style={{ fontSize: 15, fontWeight: "600", color: mode === opt.key ? colors.primary : colors.foreground, marginLeft: 12 }}>
                   {opt.label}
                 </Text>
-                {themeMode === opt.key && (
+                {mode === opt.key && (
                   <View style={{ marginLeft: "auto" }}>
                     <IconSymbol name="checkmark" size={18} color={colors.primary} />
                   </View>

@@ -1,8 +1,11 @@
 import { Stack } from "expo-router";
+import { useColors } from "@/hooks/use-colors";
 
 export default function MoreLayout() {
+  const colors = useColors();
+
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Screen name="bio" />
       <Stack.Screen name="notes" />
       <Stack.Screen name="competitions" />

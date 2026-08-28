@@ -97,7 +97,7 @@ export default function NotesScreen() {
                   <Text style={{ fontSize: 13, color: colors.muted, marginTop: 6, lineHeight: 18 }} numberOfLines={3}>
                     {note.content}
                   </Text>
-                  <Text style={{ fontSize: 11, color: colors.border, marginTop: 8 }}>
+                  <Text style={{ fontSize: 11, color: colors.muted, marginTop: 8 }}>
                     Updated: {new Date(note.updatedAt).toLocaleDateString()}
                   </Text>
                 </View>

@@ -96,7 +96,7 @@ export default function ProjectsScreen() {
       </View>
 
       {/* Filter */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginBottom: 16 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, marginBottom: 16, alignItems: "center" }}>
         <Pressable onPress={() => setFilter("all")}
           style={({ pressed }) => ({ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
             backgroundColor: filter === "all" ? colors.primary : colors.surface, opacity: pressed ? 0.85 : 1 })}>
