@@ -86,6 +86,7 @@ export interface Event {
   description?: string;
   date: string;
   venueId?: string;
+  mapUrl?: string;
   type: "meeting" | "deadline" | "conference" | "hackathon" | "personal" | "other";
   notes?: string;
   createdAt: string;
@@ -97,6 +98,7 @@ export interface Venue {
   name: string;
   address?: string;
   city?: string;
+  mapUrl?: string;
   notes?: string;
   createdAt: string;
 }

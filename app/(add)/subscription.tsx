@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { ScrollView, Text, View, Pressable, TextInput } from "react-native";
+import { ScrollView, Text, View, Pressable , Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ScreenHeader } from "@/components/ui/screen-header";
+import { FormField } from "@/components/ui/form-field";
 import { subscriptions as subStorage } from "@/lib/storage";
 import type { Subscription } from "@/lib/types";
 import { CURRENCIES, SUBSCRIPTION_CATEGORIES } from "@/lib/constants";
 import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
-import { Platform } from "react-native";
 
 const BILLING_OPTIONS: { key: Subscription["billingCycle"]; label: string }[] = [
   { key: "monthly", label: "Monthly" },
@@ -45,25 +45,13 @@ export default function AddSubscriptionScreen() {
 
   return (
     <ScreenContainer className="px-5">
-      <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 16, paddingBottom: 12, justifyContent: "space-between" }}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable onPress={() => router.back()} style={({ pressed }) => ({ padding: 4, opacity: pressed ? 0.6 : 1 })}>
-            <IconSymbol name="arrow.left" size={24} color={colors.foreground} />
-          </Pressable>
-          <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginLeft: 12 }}>Add Subscription</Text>
-        </View>
-        <Pressable onPress={handleSave} style={({ pressed }) => ({ padding: 8, borderRadius: 10, backgroundColor: colors.primary, opacity: pressed ? 0.8 : 1 })}>
-          <Text style={{ fontSize: 14, fontWeight: "600", color: "#FFFFFF" }}>Save</Text>
-        </Pressable>
-      </View>
+      <ScreenHeader title="Add Subscription" showBack onActionPress={handleSave} actionLabel="Save" />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ backgroundColor: colors.background, borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: colors.border, marginBottom: 16 }}>
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Name</Text>
-          <TextInput value={form.name} onChangeText={(v) => setForm({ ...form, name: v })}
-            placeholder="e.g., Netflix, Spotify" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
+          <FormField label="Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} placeholder="e.g., Netflix, Spotify" />
 
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Category</Text>
+          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 4 }}>Category</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 6 }}>
             {SUBSCRIPTION_CATEGORIES.map((cat) => (
               <Pressable key={cat} onPress={() => setForm({ ...form, category: cat })}
@@ -73,18 +61,15 @@ export default function AddSubscriptionScreen() {
               </Pressable>
             ))}
           </ScrollView>
-          <TextInput value={form.category} onChangeText={(v) => setForm({ ...form, category: v })}
-            placeholder="Or type custom category" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
+          <FormField label="" value={form.category} onChangeText={(v) => setForm({ ...form, category: v })} placeholder="Or type custom category" />
 
-          <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
+          <View style={{ flexDirection: "row", gap: 10, marginTop: 4 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Cost</Text>
-              <TextInput value={form.cost} onChangeText={(v) => setForm({ ...form, cost: v })}
-                placeholder="0.00" keyboardType="decimal-pad" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
+              <FormField label="Cost" value={form.cost} onChangeText={(v) => setForm({ ...form, cost: v })} placeholder="0.00" keyboardType="decimal-pad" />
             </View>
           </View>
 
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Currency</Text>
+          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 4 }}>Currency</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 12 }}>
             {CURRENCIES.map((cur) => (
               <Pressable key={cur.code} onPress={() => setForm({ ...form, currency: cur.code })}
@@ -106,11 +91,9 @@ export default function AddSubscriptionScreen() {
             ))}
           </View>
 
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Renewal Date</Text>
-          <TextInput value={form.renewalDate} onChangeText={(v) => setForm({ ...form, renewalDate: v })}
-            placeholder="YYYY-MM-DD" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
+          <FormField label="Renewal Date" value={form.renewalDate} onChangeText={(v) => setForm({ ...form, renewalDate: v })} placeholder="YYYY-MM-DD" />
 
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Status</Text>
+          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 4 }}>Status</Text>
           <View style={{ flexDirection: "row", gap: 6, marginBottom: 12 }}>
             {STATUS_OPTIONS.map((opt) => (
               <Pressable key={opt.key} onPress={() => setForm({ ...form, status: opt.key })}
@@ -121,22 +104,10 @@ export default function AddSubscriptionScreen() {
             ))}
           </View>
 
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>URL (optional)</Text>
-          <TextInput value={form.url} onChangeText={(v) => setForm({ ...form, url: v })}
-            placeholder="https://..." style={getInputStyle(colors)} placeholderTextColor={colors.muted} autoCapitalize="none" />
-
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Notes (optional)</Text>
-          <TextInput value={form.notes} onChangeText={(v) => setForm({ ...form, notes: v })}
-            placeholder="Additional notes" style={{ ...getInputStyle(colors), minHeight: 80, textAlignVertical: "top" }} placeholderTextColor={colors.muted} multiline />
+          <FormField label="URL (optional)" value={form.url} onChangeText={(v) => setForm({ ...form, url: v })} placeholder="https://..." autoCapitalize="none" keyboardType="url" />
+          <FormField label="Notes (optional)" value={form.notes} onChangeText={(v) => setForm({ ...form, notes: v })} placeholder="Additional notes" multiline />
         </View>
       </ScrollView>
     </ScreenContainer>
   );
-}
-
-function getInputStyle(colors: any) {
-  return {
-    backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
-    fontSize: 14, color: colors.foreground,
-  };
 }

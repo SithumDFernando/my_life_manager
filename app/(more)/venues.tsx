@@ -1,12 +1,16 @@
 import { useState, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect , useRouter } from "expo-router";
 import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal } from "react-native";
-import { useRouter } from "expo-router";
+
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { venues as venuesStorage } from "@/lib/storage";
 import type { Venue } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
+import { BottomSheetModal } from "@/components/ui/bottom-sheet-modal";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FormField } from "@/components/ui/form-field";
+import { ScreenHeader } from "@/components/ui/screen-header";
 
 export default function VenuesScreen() {
   const router = useRouter();
@@ -59,30 +63,11 @@ export default function VenuesScreen() {
 
   return (
     <ScreenContainer className="px-5">
-      <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 16, paddingBottom: 12, justifyContent: "space-between" }}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable onPress={() => router.back()} style={({ pressed }) => ({ padding: 4, opacity: pressed ? 0.6 : 1 })}>
-            <IconSymbol name="arrow.left" size={24} color={colors.foreground} />
-          </Pressable>
-          <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginLeft: 12 }}>Venues</Text>
-        </View>
-        <Pressable
-          onPress={() => { resetForm(); setShowAdd(true); }}
-          style={({ pressed }) => ({
-            width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primary,
-            alignItems: "center", justifyContent: "center", opacity: pressed ? 0.8 : 1,
-          })}
-        >
-          <IconSymbol name="plus" size={20} color="#FFFFFF" />
-        </Pressable>
-      </View>
+      <ScreenHeader title="Venues" showBack actionIcon="plus" onActionPress={() => { resetForm(); setShowAdd(true); }} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         {venList.length === 0 ? (
-          <View style={{ alignItems: "center", paddingVertical: 60 }}>
-            <IconSymbol name="map.pin" size={48} color={colors.border} />
-            <Text style={{ fontSize: 15, color: colors.muted, marginTop: 12 }}>No venues saved</Text>
-          </View>
+          <EmptyState title="No venues saved" icon="map.pin" />
         ) : (
           venList.map((venue) => (
             <Pressable
@@ -110,34 +95,22 @@ export default function VenuesScreen() {
       </ScrollView>
 
       {/* Add/Edit Modal */}
-      <Modal visible={showAdd || !!editingVenue} animationType="slide" transparent>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 }}>
-            <View style={{ alignItems: "center", marginBottom: 20 }}>
-              <View style={{ width: 40, height: 4, backgroundColor: colors.border, borderRadius: 2 }} />
-            </View>
-            <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginBottom: 16 }}>
-              {editingVenue ? "Edit Venue" : "Add Venue"}
-            </Text>
-            <TextInput placeholder="Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })}
-              style={{ backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: colors.foreground, marginBottom: 10 }} placeholderTextColor={colors.muted} />
-            <TextInput placeholder="Address" value={form.address} onChangeText={(v) => setForm({ ...form, address: v })}
-              style={{ backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: colors.foreground, marginBottom: 10 }} placeholderTextColor={colors.muted} />
-            <TextInput placeholder="City" value={form.city} onChangeText={(v) => setForm({ ...form, city: v })}
-              style={{ backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: colors.foreground, marginBottom: 10 }} placeholderTextColor={colors.muted} />
+      <BottomSheetModal visible={showAdd || !!editingVenue} onClose={() => { setShowAdd(false); setEditingVenue(null); resetForm(); }} title={editingVenue ? "Edit Venue" : "Add Venue"} scrollable maxHeight="85%">
+        <FormField label="Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} placeholder="e.g., Central Park, Starbucks" />
+        <FormField label="Address" value={form.address} onChangeText={(v) => setForm({ ...form, address: v })} placeholder="Full address" />
+        <FormField label="City" value={form.city} onChangeText={(v) => setForm({ ...form, city: v })} placeholder="City" />
+        <FormField label="Notes" value={form.notes} onChangeText={(v) => setForm({ ...form, notes: v })} placeholder="Additional notes" multiline />
 
-            <View style={{ flexDirection: "row", gap: 12 }}>
-              <Pressable onPress={() => { setShowAdd(false); setEditingVenue(null); resetForm(); }}
-                style={{ flex: 1, backgroundColor: colors.surface, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}>
-                <Text style={{ fontSize: 15, fontWeight: "600", color: colors.muted }}>Cancel</Text>
-              </Pressable>
-              <Pressable onPress={editingVenue ? handleUpdate : handleAdd} style={{ flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}>
-                <Text style={{ fontSize: 15, fontWeight: "600", color: "#FFFFFF" }}>{editingVenue ? "Update" : "Save"}</Text>
-              </Pressable>
-            </View>
-          </View>
+        <View style={{ flexDirection: "row", gap: 12, marginTop: 12 }}>
+          <Pressable onPress={() => { setShowAdd(false); setEditingVenue(null); resetForm(); }}
+            style={{ flex: 1, backgroundColor: colors.surface, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}>
+            <Text style={{ fontSize: 15, fontWeight: "600", color: colors.muted }}>Cancel</Text>
+          </Pressable>
+          <Pressable onPress={editingVenue ? handleUpdate : handleAdd} style={{ flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}>
+            <Text style={{ fontSize: 15, fontWeight: "600", color: "#FFFFFF" }}>{editingVenue ? "Update" : "Save"}</Text>
+          </Pressable>
         </View>
-      </Modal>
+      </BottomSheetModal>
     </ScreenContainer>
   );
 }

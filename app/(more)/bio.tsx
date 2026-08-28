@@ -1,13 +1,13 @@
 import { useState, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
-import { ScrollView, Text, View, TextInput, Pressable, Alert } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect , useRouter } from "expo-router";
+import { ScrollView, Text, View, TextInput, Pressable, Alert , Platform } from "react-native";
+
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { bioData as bioDataStorage } from "@/lib/storage";
 import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
-import { Platform } from "react-native";
+
 
 export default function BioScreen() {
   const router = useRouter();

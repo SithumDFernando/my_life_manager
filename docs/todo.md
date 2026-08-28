@@ -21,7 +21,8 @@
 - [x] Add haptic feedback on primary actions
 - [x] Test all flows end-to-end
 - [x] Final polish and checkpoint
-# Upgrade v2 — Bug Fixes & Improvements
+
+# Upgrade v1.5 — Bug Fixes & Improvements
 
 - [x] Fix real-time data refresh (useFocusEffect on all screens)
 - [x] Add edit/update for Accounts module
@@ -39,3 +40,26 @@
 - [x] Copy username/password to clipboard
 - [x] Proper PIN Change flow (old PIN → new PIN)
 - [x] Test all upgrades
+
+# Upgrade v2 — Architecture, UI & Habits
+
+## Phase 1: Foundation & UI Refactoring (Complete)
+- [x] Install `@react-native-community/datetimepicker`
+- [x] Update `lib/types.ts` for Location links (`mapUrl`)
+- [x] Create reusable UI components (`BottomSheetModal`, `ScreenHeader`, `FormField`, `EmptyState`, etc.)
+- [x] Build Full-Screen Notes Editor (with debounced auto-save)
+- [x] Refactor target screens to use new modular UI components
+
+## Phase 2: Navigation & Habits Hub
+- [ ] Reorganize Tab Bar (Dedicated Habits Tab + Projects moved to Tracker)
+- [ ] Build Habits Data Models & Storage Layer (`lib/types.ts` & `lib/storage.ts`)
+- [ ] Build Habits UI (Positive, Avoidance, Numeric, Weekly Quota e.g. 3x/week)
+- [ ] Build Gamification Engine (XP, Levels, Streak Shields, 24h Grace Window)
+
+## Phase 3: Developer Info, Feedback & Help
+- [ ] Build Developer Showcase & Feedback Modal with Quality Rating Sliders
+- [ ] Build In-App Help Center & Knowledge Base (`app/(more)/help.tsx`)
+
+## Phase 4: Backup & Verification
+- [ ] Update JSON Backup/Restore for Habit Keys
+- [ ] Standalone APK Testing

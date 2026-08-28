@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ScrollView, Text, View, Pressable, TextInput } from "react-native";
+import { ScrollView, Text, View, Pressable, TextInput , Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
@@ -7,7 +7,7 @@ import { achievements as achStorage } from "@/lib/storage";
 import type { Achievement } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
-import { Platform } from "react-native";
+
 
 const TYPE_OPTIONS: { key: Achievement["type"]; label: string }[] = [
   { key: "hackathon", label: "Hackathon" },

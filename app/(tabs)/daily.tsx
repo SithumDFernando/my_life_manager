@@ -1,13 +1,15 @@
 import { useState, useCallback } from "react";
 import { useFocusEffect } from "expo-router";
-import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal } from "react-native";
+import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal , Platform } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
+import { BottomSheetModal } from "@/components/ui/bottom-sheet-modal";
+import { EmptyState } from "@/components/ui/empty-state";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { tasks, dailyReports, settings as settingsStorage } from "@/lib/storage";
 import type { Task, DailyReport } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
-import { Platform } from "react-native";
+
 
 export default function DailyScreen() {
   const colors = useColors();
@@ -135,7 +137,7 @@ export default function DailyScreen() {
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
             <View>
               <Text style={{ fontSize: 14, fontWeight: "600", color: colors.foreground }}>
-                Today's Progress
+                Today&apos;s Progress
               </Text>
               <Text style={{ fontSize: 12, color: colors.muted, marginTop: 2 }}>
                 {completedCount} of {totalCount} completed
@@ -220,11 +222,7 @@ export default function DailyScreen() {
       {/* Tasks */}
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         {todayTasks.length === 0 ? (
-          <View style={{ alignItems: "center", paddingVertical: 60 }}>
-            <IconSymbol name="list.bullet" size={48} color={colors.border} />
-            <Text style={{ fontSize: 15, color: colors.muted, marginTop: 12 }}>No tasks for today</Text>
-            <Text style={{ fontSize: 13, color: colors.muted, marginTop: 4 }}>Add a task to get started</Text>
-          </View>
+          <EmptyState icon="list.bullet" title="No tasks for today" subtitle="Add a task to get started" />
         ) : (
           todayTasks.map((task) => (
             <View
@@ -260,82 +258,73 @@ export default function DailyScreen() {
       </ScrollView>
 
       {/* Carry Over Modal */}
-      <Modal visible={showCarryOver} animationType="slide" transparent onRequestClose={() => setShowCarryOver(false)}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40, maxHeight: "80%" }}>
-            <View style={{ alignItems: "center", marginBottom: 16 }}>
-              <View style={{ width: 40, height: 4, backgroundColor: colors.border, borderRadius: 2 }} />
+      <BottomSheetModal 
+        visible={showCarryOver} 
+        onClose={() => setShowCarryOver(false)}
+        title="Unfinished Tasks"
+        maxHeight="80%"
+      >
+        <Text style={{ fontSize: 14, color: colors.muted, marginBottom: 16 }}>
+          {carryOverTasks.length} task(s) from yesterday are unfinished. Carry them over?
+        </Text>
+        <ScrollView contentContainerStyle={{ marginBottom: 16, maxHeight: 200 }}>
+          {carryOverTasks.map((task) => (
+            <View key={task.id} style={{ flexDirection: "row", alignItems: "center", padding: 10, backgroundColor: colors.surface, borderRadius: 10, marginBottom: 6 }}>
+              <Text style={{ flex: 1, fontSize: 14, color: colors.foreground }}>{task.title}</Text>
             </View>
-            <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginBottom: 8 }}>
-              Unfinished Tasks
-            </Text>
-            <Text style={{ fontSize: 14, color: colors.muted, marginBottom: 16 }}>
-              {carryOverTasks.length} task(s) from yesterday are unfinished. Carry them over?
-            </Text>
-            <ScrollView contentContainerStyle={{ marginBottom: 16, maxHeight: 200 }}>
-              {carryOverTasks.map((task) => (
-                <View key={task.id} style={{ flexDirection: "row", alignItems: "center", padding: 10, backgroundColor: colors.surface, borderRadius: 10, marginBottom: 6 }}>
-                  <Text style={{ flex: 1, fontSize: 14, color: colors.foreground }}>{task.title}</Text>
-                </View>
-              ))}
-            </ScrollView>
-            <View style={{ flexDirection: "row", gap: 12 }}>
-              <Pressable onPress={() => { setShowCarryOver(false); setCarryOverTasks([]); }}
-                style={{ flex: 1, backgroundColor: colors.surface, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}>
-                <Text style={{ fontSize: 15, fontWeight: "600", color: colors.muted }}>Discard</Text>
-              </Pressable>
-              <Pressable onPress={() => handleCarryOver(carryOverTasks.map((t) => t.id))}
-                style={{ flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}>
-                <Text style={{ fontSize: 15, fontWeight: "600", color: "#FFFFFF" }}>Carry Over</Text>
-              </Pressable>
-            </View>
-          </View>
+          ))}
+        </ScrollView>
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          <Pressable onPress={() => { setShowCarryOver(false); setCarryOverTasks([]); }}
+            style={{ flex: 1, backgroundColor: colors.surface, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}>
+            <Text style={{ fontSize: 15, fontWeight: "600", color: colors.muted }}>Discard</Text>
+          </Pressable>
+          <Pressable onPress={() => handleCarryOver(carryOverTasks.map((t) => t.id))}
+            style={{ flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}>
+            <Text style={{ fontSize: 15, fontWeight: "600", color: "#FFFFFF" }}>Carry Over</Text>
+          </Pressable>
         </View>
-      </Modal>
+      </BottomSheetModal>
 
       {/* Report Modal */}
-      <Modal visible={!!showReport} animationType="slide" transparent onRequestClose={() => setShowReport(null)}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 }}>
-            <View style={{ alignItems: "center", marginBottom: 16 }}>
-              <View style={{ width: 40, height: 4, backgroundColor: colors.border, borderRadius: 2 }} />
-            </View>
-            <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginBottom: 8 }}>Yesterday's Report</Text>
-            <Text style={{ fontSize: 14, color: colors.muted, marginBottom: 16 }}>{showReport?.date}</Text>
-            <View style={{ backgroundColor: colors.surface, borderRadius: 12, padding: 16, marginBottom: 16 }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
-                <Text style={{ fontSize: 14, color: colors.muted }}>Total Tasks</Text>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.foreground }}>{showReport?.totalTasks}</Text>
-              </View>
-              <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
-                <Text style={{ fontSize: 14, color: colors.muted }}>Completed</Text>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.success }}>{showReport?.completedTasks}</Text>
-              </View>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Text style={{ fontSize: 14, color: colors.muted }}>Unfinished</Text>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.warning }}>
-                  {(showReport?.totalTasks || 0) - (showReport?.completedTasks || 0)}
-                </Text>
-              </View>
-            </View>
-            {showReport && showReport.unfinishedTasks && showReport.unfinishedTasks.length > 0 && (
-              <View style={{ marginBottom: 16 }}>
-                <Text style={{ fontSize: 14, fontWeight: "600", color: colors.foreground, marginBottom: 8 }}>Unfinished Tasks:</Text>
-                {showReport.unfinishedTasks.map((t) => (
-                  <View key={t.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 4 }}>
-                    <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.warning, marginRight: 8 }} />
-                    <Text style={{ fontSize: 13, color: colors.muted }}>{t.title}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            <Pressable onPress={() => setShowReport(null)}
-              style={{ backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}>
-              <Text style={{ fontSize: 15, fontWeight: "600", color: "#FFFFFF" }}>Got it!</Text>
-            </Pressable>
+      <BottomSheetModal 
+        visible={!!showReport} 
+        onClose={() => setShowReport(null)}
+        title="Yesterday's Report"
+      >
+        <Text style={{ fontSize: 14, color: colors.muted, marginBottom: 16 }}>{showReport?.date}</Text>
+        <View style={{ backgroundColor: colors.surface, borderRadius: 12, padding: 16, marginBottom: 16 }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+            <Text style={{ fontSize: 14, color: colors.muted }}>Total Tasks</Text>
+            <Text style={{ fontSize: 14, fontWeight: "600", color: colors.foreground }}>{showReport?.totalTasks}</Text>
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", marginBottom: 8 }}>
+            <Text style={{ fontSize: 14, color: colors.muted }}>Completed</Text>
+            <Text style={{ fontSize: 14, fontWeight: "600", color: colors.success }}>{showReport?.completedTasks}</Text>
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Text style={{ fontSize: 14, color: colors.muted }}>Unfinished</Text>
+            <Text style={{ fontSize: 14, fontWeight: "600", color: colors.warning }}>
+              {(showReport?.totalTasks || 0) - (showReport?.completedTasks || 0)}
+            </Text>
           </View>
         </View>
-      </Modal>
+        {showReport && showReport.unfinishedTasks && showReport.unfinishedTasks.length > 0 && (
+          <View style={{ marginBottom: 16 }}>
+            <Text style={{ fontSize: 14, fontWeight: "600", color: colors.foreground, marginBottom: 8 }}>Unfinished Tasks:</Text>
+            {showReport.unfinishedTasks.map((t) => (
+              <View key={t.id} style={{ flexDirection: "row", alignItems: "center", paddingVertical: 4 }}>
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.warning, marginRight: 8 }} />
+                <Text style={{ fontSize: 13, color: colors.muted }}>{t.title}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+        <Pressable onPress={() => setShowReport(null)}
+          style={{ backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}>
+          <Text style={{ fontSize: 15, fontWeight: "600", color: "#FFFFFF" }}>Got it!</Text>
+        </Pressable>
+      </BottomSheetModal>
     </ScreenContainer>
   );
 }

@@ -113,14 +113,15 @@ export const bioData = {
 export const notes = {
   getAll: () => getAll<Note>(KEYS.NOTES),
   getById: (id: string) => getById<Note>(KEYS.NOTES, id),
-  add: (data: Omit<Note, "id" | "createdAt" | "updatedAt">) => {
+  add: async (data: Omit<Note, "id" | "createdAt" | "updatedAt">) => {
     const note: Note = {
       ...data,
       id: generateId(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    return addOne(KEYS.NOTES, note);
+    await addOne(KEYS.NOTES, note);
+    return note;
   },
   update: (id: string, updates: Partial<Note>) =>
     updateOne<Note>(KEYS.NOTES, id, { ...updates, updatedAt: new Date().toISOString() }),

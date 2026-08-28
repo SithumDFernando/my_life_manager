@@ -1,13 +1,16 @@
 import { useState, useCallback } from "react";
-import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal } from "react-native";
-import { useFocusEffect } from "expo-router";
-import { useRouter } from "expo-router";
+import { ScrollView, Text, View, Pressable, Alert } from "react-native";
+import { useFocusEffect , useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { competitions as compStorage } from "@/lib/storage";
 import type { Competition } from "@/lib/types";
 import { COMPETITION_RESULTS, CURRENCIES } from "@/lib/constants";
 import { useColors } from "@/hooks/use-colors";
+import { BottomSheetModal } from "@/components/ui/bottom-sheet-modal";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FormField } from "@/components/ui/form-field";
+import { ScreenHeader } from "@/components/ui/screen-header";
 
 const STATUS_OPTIONS: { key: Competition["status"]; label: string }[] = [
   { key: "upcoming", label: "Upcoming" },
@@ -99,30 +102,11 @@ export default function CompetitionsScreen() {
 
   return (
     <ScreenContainer className="px-5">
-      <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 16, paddingBottom: 12, justifyContent: "space-between" }}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable onPress={() => router.back()} style={({ pressed }) => ({ padding: 4, opacity: pressed ? 0.6 : 1 })}>
-            <IconSymbol name="arrow.left" size={24} color={colors.foreground} />
-          </Pressable>
-          <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginLeft: 12 }}>Competitions</Text>
-        </View>
-        <Pressable
-          onPress={() => { resetForm(); setShowAdd(true); }}
-          style={({ pressed }) => ({
-            width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primary,
-            alignItems: "center", justifyContent: "center", opacity: pressed ? 0.8 : 1,
-          })}
-        >
-          <IconSymbol name="plus" size={20} color="#FFFFFF" />
-        </Pressable>
-      </View>
+      <ScreenHeader title="Competitions" showBack actionIcon="plus" onActionPress={() => { resetForm(); setShowAdd(true); }} />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         {comps.length === 0 ? (
-          <View style={{ alignItems: "center", paddingVertical: 60 }}>
-            <IconSymbol name="trophy.fill" size={48} color={colors.border} />
-            <Text style={{ fontSize: 15, color: colors.muted, marginTop: 12 }}>No competitions yet</Text>
-          </View>
+          <EmptyState title="No competitions yet" icon="trophy.fill" />
         ) : (
           comps.map((comp) => (
             <View key={comp.id} style={{ backgroundColor: colors.background, borderRadius: 14, padding: 14, marginBottom: 10, borderWidth: 0.5, borderColor: colors.border }}>
@@ -164,35 +148,10 @@ export default function CompetitionsScreen() {
         )}
       </ScrollView>
 
-      {/* Add Modal */}
-      <Modal visible={showAdd} animationType="slide" transparent onRequestClose={() => setShowAdd(false)}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
-            <View style={{ backgroundColor: colors.background, borderRadius: 20, padding: 24 }}>
-              <View style={{ alignItems: "center", marginBottom: 20 }}>
-                <View style={{ width: 40, height: 4, backgroundColor: colors.border, borderRadius: 2 }} />
-              </View>
-              <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginBottom: 16 }}>Add Competition</Text>
-              <CompetitionForm form={form} setForm={setForm} onSave={handleAdd} onCancel={() => { setShowAdd(false); resetForm(); }} colors={colors} />
-            </View>
-          </ScrollView>
-        </View>
-      </Modal>
-
-      {/* Edit Modal */}
-      <Modal visible={!!editingComp} animationType="slide" transparent onRequestClose={() => setEditingComp(null)}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 40 }}>
-            <View style={{ backgroundColor: colors.background, borderRadius: 20, padding: 24 }}>
-              <View style={{ alignItems: "center", marginBottom: 20 }}>
-                <View style={{ width: 40, height: 4, backgroundColor: colors.border, borderRadius: 2 }} />
-              </View>
-              <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginBottom: 16 }}>Edit Competition</Text>
-              <CompetitionForm form={form} setForm={setForm} onSave={handleEdit} onCancel={() => { setEditingComp(null); resetForm(); }} colors={colors} />
-            </View>
-          </ScrollView>
-        </View>
-      </Modal>
+      {/* Add/Edit Modal */}
+      <BottomSheetModal visible={showAdd || !!editingComp} onClose={() => { setShowAdd(false); setEditingComp(null); resetForm(); }} title={editingComp ? "Edit Competition" : "Add Competition"} scrollable maxHeight="85%">
+        <CompetitionForm form={form} setForm={setForm} onSave={editingComp ? handleEdit : handleAdd} onCancel={() => { setShowAdd(false); setEditingComp(null); resetForm(); }} colors={colors} />
+      </BottomSheetModal>
     </ScreenContainer>
   );
 }
@@ -200,22 +159,14 @@ export default function CompetitionsScreen() {
 function CompetitionForm({ form, setForm, onSave, onCancel, colors }: {
   form: any; setForm: (f: any) => void; onSave: () => void; onCancel: () => void; colors: any;
 }) {
-  const inputStyle = {
-    backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
-    fontSize: 14, color: colors.foreground, marginBottom: 10,
-  };
-
   return (
     <View>
-      <TextInput placeholder="Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })}
-        style={inputStyle} placeholderTextColor={colors.muted} />
-      <TextInput placeholder="Category" value={form.category} onChangeText={(v) => setForm({ ...form, category: v })}
-        style={inputStyle} placeholderTextColor={colors.muted} />
-      <TextInput placeholder="Organizer" value={form.organizer} onChangeText={(v) => setForm({ ...form, organizer: v })}
-        style={inputStyle} placeholderTextColor={colors.muted} />
+      <FormField label="Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} placeholder="Name" />
+      <FormField label="Category" value={form.category} onChangeText={(v) => setForm({ ...form, category: v })} placeholder="Category" />
+      <FormField label="Organizer" value={form.organizer} onChangeText={(v) => setForm({ ...form, organizer: v })} placeholder="Organizer" />
 
       {/* Team / Individual */}
-      <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 8 }}>Team / Individual</Text>
+      <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 8, marginTop: 4 }}>Team / Individual</Text>
       <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
         {TEAM_OPTIONS.map((opt) => (
           <Pressable key={opt.key} onPress={() => setForm({ ...form, teamOrIndividual: opt.key })}
@@ -226,13 +177,11 @@ function CompetitionForm({ form, setForm, onSave, onCancel, colors }: {
         ))}
       </View>
 
-      <TextInput placeholder="Start Date (YYYY-MM-DD)" value={form.startDate} onChangeText={(v) => setForm({ ...form, startDate: v })}
-        style={inputStyle} placeholderTextColor={colors.muted} />
-      <TextInput placeholder="End Date (YYYY-MM-DD)" value={form.endDate} onChangeText={(v) => setForm({ ...form, endDate: v })}
-        style={inputStyle} placeholderTextColor={colors.muted} />
+      <FormField label="Start Date (YYYY-MM-DD)" value={form.startDate} onChangeText={(v) => setForm({ ...form, startDate: v })} placeholder="Start Date" />
+      <FormField label="End Date (YYYY-MM-DD)" value={form.endDate} onChangeText={(v) => setForm({ ...form, endDate: v })} placeholder="End Date" />
 
       {/* Result dropdown */}
-      <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 8 }}>Result</Text>
+      <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 8, marginTop: 4 }}>Result</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 12 }}>
         {COMPETITION_RESULTS.map((result) => (
           <Pressable key={result} onPress={() => setForm({ ...form, result })}
@@ -247,11 +196,10 @@ function CompetitionForm({ form, setForm, onSave, onCancel, colors }: {
       <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Prize</Text>
       <View style={{ flexDirection: "row", gap: 10, marginBottom: 6 }}>
         <View style={{ flex: 1 }}>
-          <TextInput placeholder="Amount" value={form.prizeAmount} onChangeText={(v) => setForm({ ...form, prizeAmount: v })}
-            keyboardType="decimal-pad" style={inputStyle} placeholderTextColor={colors.muted} />
+          <FormField label="" value={form.prizeAmount} onChangeText={(v) => setForm({ ...form, prizeAmount: v })} placeholder="Amount" keyboardType="decimal-pad" />
         </View>
       </View>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 12 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 16 }}>
         {CURRENCIES.map((cur) => (
           <Pressable key={cur.code} onPress={() => setForm({ ...form, prizeCurrency: cur.code })}
             style={({ pressed }) => ({ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8,
@@ -263,7 +211,7 @@ function CompetitionForm({ form, setForm, onSave, onCancel, colors }: {
 
       {/* Status */}
       <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 8 }}>Status</Text>
-      <View style={{ flexDirection: "row", gap: 8, marginBottom: 12 }}>
+      <View style={{ flexDirection: "row", gap: 8, marginBottom: 16 }}>
         {STATUS_OPTIONS.map((opt) => (
           <Pressable key={opt.key} onPress={() => setForm({ ...form, status: opt.key })}
             style={({ pressed }) => ({ paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10,
@@ -273,13 +221,9 @@ function CompetitionForm({ form, setForm, onSave, onCancel, colors }: {
         ))}
       </View>
 
-      {/* Notes */}
-      <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Notes</Text>
-      <TextInput placeholder="Additional notes..." value={form.notes} onChangeText={(v) => setForm({ ...form, notes: v })}
-        multiline numberOfLines={3}
-        style={{ ...inputStyle, minHeight: 80, textAlignVertical: "top" }} placeholderTextColor={colors.muted} />
+      <FormField label="Notes" value={form.notes} onChangeText={(v) => setForm({ ...form, notes: v })} placeholder="Additional notes..." multiline />
 
-      <View style={{ flexDirection: "row", gap: 12 }}>
+      <View style={{ flexDirection: "row", gap: 12, marginTop: 12 }}>
         <Pressable onPress={onCancel}
           style={{ flex: 1, backgroundColor: colors.surface, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}>
           <Text style={{ fontSize: 15, fontWeight: "600", color: colors.muted }}>Cancel</Text>

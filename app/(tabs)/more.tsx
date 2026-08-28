@@ -1,14 +1,15 @@
 import { useState, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
-import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect , useRouter } from "expo-router";
+import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal , Platform, useColorScheme as useSystemColorScheme } from "react-native";
+
 import { ScreenContainer } from "@/components/screen-container";
+import { BottomSheetModal } from "@/components/ui/bottom-sheet-modal";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { bioData, pinStorage } from "@/lib/storage";
 import { useColors } from "@/hooks/use-colors";
 import { useThemeContext } from "@/lib/theme-provider";
 import * as Haptics from "expo-haptics";
-import { Platform, useColorScheme as useSystemColorScheme } from "react-native";
+
 import type { ColorScheme } from "@/constants/theme";
 
 type ThemeOption = "light" | "dark" | "system";
@@ -177,107 +178,98 @@ export default function MoreScreen() {
       </ScrollView>
 
       {/* Theme Picker Modal */}
-      <Modal visible={showThemePicker} animationType="slide" transparent onRequestClose={() => setShowThemePicker(false)}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 }}>
-            <View style={{ alignItems: "center", marginBottom: 20 }}>
-              <View style={{ width: 40, height: 4, backgroundColor: colors.border, borderRadius: 2 }} />
-            </View>
-            <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginBottom: 16 }}>Appearance</Text>
-            {([
-              { key: "light" as ThemeOption, label: "Light", icon: "sun.max.fill" },
-              { key: "dark" as ThemeOption, label: "Dark", icon: "moon.fill" },
-              { key: "system" as ThemeOption, label: "System Default", icon: "gear" },
-            ]).map((opt) => (
-              <Pressable
-                key={opt.key}
-                onPress={() => handleThemeChange(opt.key)}
-                style={({ pressed }) => ({
-                  flexDirection: "row", alignItems: "center", padding: 14, borderRadius: 12,
-                  backgroundColor: mode === opt.key ? colors.primary + "15" : colors.surface,
-                  marginBottom: 8, opacity: pressed ? 0.85 : 1,
-                  borderWidth: mode === opt.key ? 1.5 : 0,
-                  borderColor: mode === opt.key ? colors.primary : "transparent",
-                })}
-              >
-                <IconSymbol name={opt.icon} size={20} color={mode === opt.key ? colors.primary : colors.muted} />
-                <Text style={{ fontSize: 15, fontWeight: "600", color: mode === opt.key ? colors.primary : colors.foreground, marginLeft: 12 }}>
-                  {opt.label}
-                </Text>
-                {mode === opt.key && (
-                  <View style={{ marginLeft: "auto" }}>
-                    <IconSymbol name="checkmark" size={18} color={colors.primary} />
-                  </View>
-                )}
-              </Pressable>
-            ))}
-            <Pressable onPress={() => setShowThemePicker(false)} style={{ marginTop: 8, alignItems: "center" }}>
-              <Text style={{ fontSize: 14, color: colors.muted }}>Close</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+      <BottomSheetModal 
+        visible={showThemePicker} 
+        onClose={() => setShowThemePicker(false)}
+        title="Appearance"
+      >
+        {([
+          { key: "light" as ThemeOption, label: "Light", icon: "sun.max.fill" },
+          { key: "dark" as ThemeOption, label: "Dark", icon: "moon.fill" },
+          { key: "system" as ThemeOption, label: "System Default", icon: "gear" },
+        ]).map((opt) => (
+          <Pressable
+            key={opt.key}
+            onPress={() => handleThemeChange(opt.key)}
+            style={({ pressed }) => ({
+              flexDirection: "row", alignItems: "center", padding: 14, borderRadius: 12,
+              backgroundColor: mode === opt.key ? colors.primary + "15" : colors.surface,
+              marginBottom: 8, opacity: pressed ? 0.85 : 1,
+              borderWidth: mode === opt.key ? 1.5 : 0,
+              borderColor: mode === opt.key ? colors.primary : "transparent",
+            })}
+          >
+            <IconSymbol name={opt.icon} size={20} color={mode === opt.key ? colors.primary : colors.muted} />
+            <Text style={{ fontSize: 15, fontWeight: "600", color: mode === opt.key ? colors.primary : colors.foreground, marginLeft: 12 }}>
+              {opt.label}
+            </Text>
+            {mode === opt.key && (
+              <View style={{ marginLeft: "auto" }}>
+                <IconSymbol name="checkmark" size={18} color={colors.primary} />
+              </View>
+            )}
+          </Pressable>
+        ))}
+        <Pressable onPress={() => setShowThemePicker(false)} style={{ marginTop: 8, alignItems: "center" }}>
+          <Text style={{ fontSize: 14, color: colors.muted }}>Close</Text>
+        </Pressable>
+      </BottomSheetModal>
 
       {/* Change PIN Modal */}
-      <Modal visible={showChangePin} animationType="slide" transparent onRequestClose={() => setShowChangePin(false)}>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 }}>
-            <View style={{ alignItems: "center", marginBottom: 20 }}>
-              <View style={{ width: 40, height: 4, backgroundColor: colors.border, borderRadius: 2 }} />
-            </View>
-            <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginBottom: 8 }}>{getPinTitle()}</Text>
-
-            {/* PIN Dots */}
-            <View style={{ flexDirection: "row", gap: 12, justifyContent: "center", marginBottom: 16 }}>
-              {[0, 1, 2, 3, 4, 5].map((i) => (
-                <View key={i} style={{
-                  width: 14, height: 14, borderRadius: 7,
-                  backgroundColor: i < getCurrentPin().length ? colors.primary : colors.border,
-                }} />
-              ))}
-            </View>
-
-            {pinError ? <Text style={{ fontSize: 13, color: colors.error, textAlign: "center", marginBottom: 12 }}>{pinError}</Text> : null}
-
-            {/* Numpad */}
-            <View>
-              {[
-                ["1", "2", "3"],
-                ["4", "5", "6"],
-                ["7", "8", "9"],
-                ["", "0", "del"],
-              ].map((row, i) => (
-                <View key={i} style={{ flexDirection: "row", justifyContent: "center", marginBottom: 10 }}>
-                  {row.map((key) => (
-                    <Pressable
-                      key={key}
-                      onPress={() => {
-                        if (key === "del") handlePinDelete();
-                        else if (key !== "") handlePinDigit(key);
-                      }}
-                      style={({ pressed }) => ({
-                        width: 64, height: 64, borderRadius: 32,
-                        marginHorizontal: 10, alignItems: "center", justifyContent: "center",
-                        backgroundColor: pressed ? colors.border : "transparent",
-                      })}
-                    >
-                      {key === "del" ? (
-                        <IconSymbol name="xmark" size={20} color={colors.foreground} />
-                      ) : key === "" ? null : (
-                        <Text style={{ fontSize: 24, color: colors.foreground }}>{key}</Text>
-                      )}
-                    </Pressable>
-                  ))}
-                </View>
-              ))}
-            </View>
-
-            <Pressable onPress={() => setShowChangePin(false)} style={{ marginTop: 12 }}>
-              <Text style={{ fontSize: 14, color: colors.muted, textAlign: "center" }}>Cancel</Text>
-            </Pressable>
-          </View>
+      <BottomSheetModal 
+        visible={showChangePin} 
+        onClose={() => setShowChangePin(false)}
+        title={getPinTitle()}
+      >
+        {/* PIN Dots */}
+        <View style={{ flexDirection: "row", gap: 12, justifyContent: "center", marginBottom: 16 }}>
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <View key={i} style={{
+              width: 14, height: 14, borderRadius: 7,
+              backgroundColor: i < getCurrentPin().length ? colors.primary : colors.border,
+            }} />
+          ))}
         </View>
-      </Modal>
+
+        {pinError ? <Text style={{ fontSize: 13, color: colors.error, textAlign: "center", marginBottom: 12 }}>{pinError}</Text> : null}
+
+        {/* Numpad */}
+        <View>
+          {[
+            ["1", "2", "3"],
+            ["4", "5", "6"],
+            ["7", "8", "9"],
+            ["", "0", "del"],
+          ].map((row, i) => (
+            <View key={i} style={{ flexDirection: "row", justifyContent: "center", marginBottom: 10 }}>
+              {row.map((key) => (
+                <Pressable
+                  key={key}
+                  onPress={() => {
+                    if (key === "del") handlePinDelete();
+                    else if (key !== "") handlePinDigit(key);
+                  }}
+                  style={({ pressed }) => ({
+                    width: 64, height: 64, borderRadius: 32,
+                    marginHorizontal: 10, alignItems: "center", justifyContent: "center",
+                    backgroundColor: pressed ? colors.border : "transparent",
+                  })}
+                >
+                  {key === "del" ? (
+                    <IconSymbol name="xmark" size={20} color={colors.foreground} />
+                  ) : key === "" ? null : (
+                    <Text style={{ fontSize: 24, color: colors.foreground }}>{key}</Text>
+                  )}
+                </Pressable>
+              ))}
+            </View>
+          ))}
+        </View>
+
+        <Pressable onPress={() => setShowChangePin(false)} style={{ marginTop: 12 }}>
+          <Text style={{ fontSize: 14, color: colors.muted, textAlign: "center" }}>Cancel</Text>
+        </Pressable>
+      </BottomSheetModal>
     </ScreenContainer>
   );
 }

@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { ScrollView, Text, View, Pressable, TextInput } from "react-native";
+import { ScrollView, Text, View, Pressable , Platform } from "react-native";
 import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
-import { IconSymbol } from "@/components/ui/icon-symbol";
+import { ScreenHeader } from "@/components/ui/screen-header";
+import { FormField } from "@/components/ui/form-field";
 import { accounts as accountsStorage } from "@/lib/storage";
 import type { AccountCategory } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
-import { Platform } from "react-native";
+
 
 const CATEGORIES: { key: AccountCategory; label: string }[] = [
   { key: "email", label: "Email" },
@@ -34,26 +35,14 @@ export default function AddAccountScreen() {
 
   return (
     <ScreenContainer className="px-5">
-      <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 16, paddingBottom: 12, justifyContent: "space-between" }}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable onPress={() => router.back()} style={({ pressed }) => ({ padding: 4, opacity: pressed ? 0.6 : 1 })}>
-            <IconSymbol name="arrow.left" size={24} color={colors.foreground} />
-          </Pressable>
-          <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginLeft: 12 }}>Add Account</Text>
-        </View>
-        <Pressable onPress={handleSave} style={({ pressed }) => ({ padding: 8, borderRadius: 10, backgroundColor: colors.primary, opacity: pressed ? 0.8 : 1 })}>
-          <Text style={{ fontSize: 14, fontWeight: "600", color: "#FFFFFF" }}>Save</Text>
-        </Pressable>
-      </View>
+      <ScreenHeader title="Add Account" showBack onActionPress={handleSave} actionLabel="Save" />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={{ backgroundColor: colors.background, borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: colors.border, marginBottom: 16 }}>
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Account Name</Text>
-          <TextInput value={form.name} onChangeText={(v) => setForm({ ...form, name: v })}
-            placeholder="e.g., Gmail, Twitter" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
+          <FormField label="Account Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} placeholder="e.g., Gmail, Twitter" />
 
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Category</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 12 }}>
+          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 4 }}>Category</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 16 }}>
             {CATEGORIES.map((cat) => (
               <Pressable key={cat.key} onPress={() => setForm({ ...form, category: cat.key })}
                 style={({ pressed }) => ({ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10,
@@ -63,30 +52,12 @@ export default function AddAccountScreen() {
             ))}
           </ScrollView>
 
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Username / Email</Text>
-          <TextInput value={form.username} onChangeText={(v) => setForm({ ...form, username: v })}
-            placeholder="username or email" style={getInputStyle(colors)} placeholderTextColor={colors.muted} autoCapitalize="none" />
-
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Password</Text>
-          <TextInput value={form.password} onChangeText={(v) => setForm({ ...form, password: v })}
-            placeholder="password" style={getInputStyle(colors)} placeholderTextColor={colors.muted} secureTextEntry autoCapitalize="none" />
-
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>URL (optional)</Text>
-          <TextInput value={form.url} onChangeText={(v) => setForm({ ...form, url: v })}
-            placeholder="https://..." style={getInputStyle(colors)} placeholderTextColor={colors.muted} autoCapitalize="none" />
-
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Notes (optional)</Text>
-          <TextInput value={form.notes} onChangeText={(v) => setForm({ ...form, notes: v })}
-            placeholder="Additional notes" style={{ ...getInputStyle(colors), minHeight: 80, textAlignVertical: "top" }} placeholderTextColor={colors.muted} multiline />
+          <FormField label="Username / Email" value={form.username} onChangeText={(v) => setForm({ ...form, username: v })} placeholder="username or email" autoCapitalize="none" />
+          <FormField label="Password" value={form.password} onChangeText={(v) => setForm({ ...form, password: v })} placeholder="password" secureTextEntry autoCapitalize="none" />
+          <FormField label="URL (optional)" value={form.url} onChangeText={(v) => setForm({ ...form, url: v })} placeholder="https://..." autoCapitalize="none" keyboardType="url" />
+          <FormField label="Notes (optional)" value={form.notes} onChangeText={(v) => setForm({ ...form, notes: v })} placeholder="Additional notes" multiline />
         </View>
       </ScrollView>
     </ScreenContainer>
   );
-}
-
-function getInputStyle(colors: any) {
-  return {
-    backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
-    fontSize: 14, color: colors.foreground,
-  };
 }

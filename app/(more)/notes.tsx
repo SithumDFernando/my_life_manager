@@ -1,8 +1,10 @@
 import { useState, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
-import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect , useRouter } from "expo-router";
+import { ScrollView, Text, View, Pressable, Alert } from "react-native";
+
 import { ScreenContainer } from "@/components/screen-container";
+import { ScreenHeader } from "@/components/ui/screen-header";
+import { EmptyState } from "@/components/ui/empty-state";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { notes as notesStorage } from "@/lib/storage";
 import type { Note } from "@/lib/types";
@@ -12,9 +14,6 @@ export default function NotesScreen() {
   const router = useRouter();
   const colors = useColors();
   const [notes, setNotes] = useState<Note[]>([]);
-  const [showAdd, setShowAdd] = useState(false);
-  const [editNote, setEditNote] = useState<Note | null>(null);
-  const [form, setForm] = useState({ title: "", content: "", category: "" });
 
   const loadNotes = useCallback(async () => {
     const data = await notesStorage.getAll();
@@ -25,22 +24,6 @@ export default function NotesScreen() {
     useCallback(() => { loadNotes(); }, [loadNotes])
   );
 
-  const handleAdd = async () => {
-    if (!form.title.trim()) return;
-    await notesStorage.add({ title: form.title, content: form.content, category: form.category || "general" });
-    setForm({ title: "", content: "", category: "" });
-    setShowAdd(false);
-    loadNotes();
-  };
-
-  const handleUpdate = async () => {
-    if (!editNote || !form.title.trim()) return;
-    await notesStorage.update(editNote.id, { title: form.title, content: form.content, category: form.category });
-    setEditNote(null);
-    setForm({ title: "", content: "", category: "" });
-    loadNotes();
-  };
-
   const handleDelete = (id: string, title: string) => {
     Alert.alert("Delete Note", `Delete "${title}"?`, [
       { text: "Cancel", style: "cancel" },
@@ -48,42 +31,23 @@ export default function NotesScreen() {
     ]);
   };
 
-  const openEdit = (note: Note) => {
-    setEditNote(note);
-    setForm({ title: note.title, content: note.content, category: note.category });
-  };
-
   return (
     <ScreenContainer className="px-5">
-      <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 16, paddingBottom: 12, justifyContent: "space-between" }}>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable onPress={() => router.back()} style={({ pressed }) => ({ padding: 4, opacity: pressed ? 0.6 : 1 })}>
-            <IconSymbol name="arrow.left" size={24} color={colors.foreground} />
-          </Pressable>
-          <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginLeft: 12 }}>Notes</Text>
-        </View>
-        <Pressable
-          onPress={() => { setShowAdd(true); setForm({ title: "", content: "", category: "" }); }}
-          style={({ pressed }) => ({
-            width: 36, height: 36, borderRadius: 18, backgroundColor: colors.primary,
-            alignItems: "center", justifyContent: "center", opacity: pressed ? 0.8 : 1,
-          })}
-        >
-          <IconSymbol name="plus" size={20} color="#FFFFFF" />
-        </Pressable>
-      </View>
+      <ScreenHeader 
+        title="Notes" 
+        showBack 
+        actionIcon="plus" 
+        onActionPress={() => router.push("/(more)/note-editor" as any)} 
+      />
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
         {notes.length === 0 ? (
-          <View style={{ alignItems: "center", paddingVertical: 60 }}>
-            <IconSymbol name="doc.fill" size={48} color={colors.border} />
-            <Text style={{ fontSize: 15, color: colors.muted, marginTop: 12 }}>No notes yet</Text>
-          </View>
+          <EmptyState icon="doc.fill" title="No notes yet" subtitle="Tap + to create a note" />
         ) : (
           notes.map((note) => (
             <Pressable
               key={note.id}
-              onPress={() => openEdit(note)}
+              onPress={() => router.push(`/(more)/note-editor?id=${note.id}` as any)}
               style={({ pressed }) => ({
                 backgroundColor: colors.background, borderRadius: 14, padding: 14, marginBottom: 10,
                 borderWidth: 0.5, borderColor: colors.border,
@@ -112,56 +76,6 @@ export default function NotesScreen() {
           ))
         )}
       </ScrollView>
-
-      {/* Add/Edit Modal */}
-      <Modal visible={showAdd || editNote !== null} animationType="slide" transparent>
-        <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }}>
-          <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40 }}>
-            <View style={{ alignItems: "center", marginBottom: 20 }}>
-              <View style={{ width: 40, height: 4, backgroundColor: colors.border, borderRadius: 2 }} />
-            </View>
-            <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginBottom: 16 }}>
-              {editNote ? "Edit Note" : "New Note"}
-            </Text>
-            <TextInput
-              placeholder="Title"
-              value={form.title}
-              onChangeText={(v) => setForm({ ...form, title: v })}
-              style={{ backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: colors.foreground, marginBottom: 10 }}
-              placeholderTextColor={colors.muted}
-            />
-            <TextInput
-              placeholder="Category"
-              value={form.category}
-              onChangeText={(v) => setForm({ ...form, category: v })}
-              style={{ backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: colors.foreground, marginBottom: 10 }}
-              placeholderTextColor={colors.muted}
-            />
-            <TextInput
-              placeholder="Content"
-              value={form.content}
-              onChangeText={(v) => setForm({ ...form, content: v })}
-              multiline numberOfLines={6}
-              style={{ backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10, fontSize: 14, color: colors.foreground, minHeight: 140, textAlignVertical: "top", marginBottom: 16 }}
-              placeholderTextColor={colors.muted}
-            />
-            <View style={{ flexDirection: "row", gap: 12 }}>
-              <Pressable
-                onPress={() => { setShowAdd(false); setEditNote(null); setForm({ title: "", content: "", category: "" }); }}
-                style={{ flex: 1, backgroundColor: colors.surface, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}
-              >
-                <Text style={{ fontSize: 15, fontWeight: "600", color: colors.muted }}>Cancel</Text>
-              </Pressable>
-              <Pressable
-                onPress={editNote ? handleUpdate : handleAdd}
-                style={{ flex: 1, backgroundColor: colors.primary, borderRadius: 12, paddingVertical: 14, alignItems: "center" }}
-              >
-                <Text style={{ fontSize: 15, fontWeight: "600", color: "#FFFFFF" }}>{editNote ? "Update" : "Save"}</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </ScreenContainer>
   );
 }

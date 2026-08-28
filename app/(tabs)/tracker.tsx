@@ -1,15 +1,18 @@
 import { useState, useCallback, useEffect } from "react";
-import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal, FlatList } from "react-native";
-import { useFocusEffect, useLocalSearchParams } from "expo-router";
+import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal, FlatList , Platform } from "react-native";
+import { useFocusEffect, useLocalSearchParams , useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
+import { BottomSheetModal } from "@/components/ui/bottom-sheet-modal";
+import { EmptyState } from "@/components/ui/empty-state";
+import { FormField } from "@/components/ui/form-field";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { accounts, subscriptions, readingItems, achievements } from "@/lib/storage";
 import type { Account, Subscription, ReadingItem, Achievement } from "@/lib/types";
 import { CURRENCIES } from "@/lib/constants";
-import { useRouter } from "expo-router";
+
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
-import { Platform } from "react-native";
+
 import { useColors } from "@/hooks/use-colors";
 
 type TabType = "accounts" | "subscriptions" | "reading" | "achievements";
@@ -140,7 +143,7 @@ function AccountsList({ data, onRefresh, colors }: { data: Account[]; onRefresh:
     }
   };
 
-  if (data.length === 0) return <EmptyState text="No accounts saved yet" icon="key.fill" colors={colors} />;
+  if (data.length === 0) return <EmptyState title="No accounts saved yet" icon="key.fill" />;
 
   return (
     <View>
@@ -224,30 +227,17 @@ function EditAccountModal({ item, onClose, onSaved, colors }: { item: Account; o
   };
 
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose}>
-      <ScreenContainer className="px-5">
-        <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 16, paddingBottom: 12, justifyContent: "space-between" }}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Pressable onPress={onClose} style={({ pressed }) => ({ padding: 4, opacity: pressed ? 0.6 : 1 })}>
-              <IconSymbol name="xmark" size={24} color={colors.foreground} />
-            </Pressable>
-            <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginLeft: 12 }}>Edit Account</Text>
-          </View>
-          <Pressable onPress={handleSave} style={({ pressed }) => ({ padding: 8, borderRadius: 10, backgroundColor: colors.primary, opacity: pressed ? 0.8 : 1 })}>
-            <Text style={{ fontSize: 14, fontWeight: "600", color: "#FFFFFF" }}>Save</Text>
-          </Pressable>
-        </View>
-        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-          <View style={{ backgroundColor: colors.background, borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: colors.border, marginBottom: 16 }}>
-            <InputField label="Account Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} colors={colors} />
-            <InputField label="Username / Email" value={form.username} onChangeText={(v) => setForm({ ...form, username: v })} colors={colors} />
-            <InputField label="Password" value={form.password} onChangeText={(v) => setForm({ ...form, password: v })} colors={colors} />
-            <InputField label="URL" value={form.url || ""} onChangeText={(v) => setForm({ ...form, url: v })} colors={colors} />
-            <InputField label="Notes" value={form.notes || ""} onChangeText={(v) => setForm({ ...form, notes: v })} multiline colors={colors} />
-          </View>
-        </ScrollView>
-      </ScreenContainer>
-    </Modal>
+    <BottomSheetModal visible onClose={onClose} title="Edit Account">
+      <FormField label="Account Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} />
+      <FormField label="Username / Email" value={form.username} onChangeText={(v) => setForm({ ...form, username: v })} autoCapitalize="none" />
+      <FormField label="Password" value={form.password} onChangeText={(v) => setForm({ ...form, password: v })} autoCapitalize="none" />
+      <FormField label="URL" value={form.url || ""} onChangeText={(v) => setForm({ ...form, url: v })} autoCapitalize="none" keyboardType="url" />
+      <FormField label="Notes" value={form.notes || ""} onChangeText={(v) => setForm({ ...form, notes: v })} multiline />
+      
+      <Pressable onPress={handleSave} style={({ pressed }) => ({ paddingVertical: 14, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", marginTop: 16, opacity: pressed ? 0.8 : 1 })}>
+        <Text style={{ fontSize: 15, fontWeight: "600", color: "#FFFFFF" }}>Save</Text>
+      </Pressable>
+    </BottomSheetModal>
   );
 }
 
@@ -265,7 +255,7 @@ function SubscriptionsList({ data, onRefresh, colors }: { data: Subscription[]; 
   const totalCost = data.filter((s) => s.status === "active").reduce((sum, s) => sum + s.cost, 0);
   const getCurrencySymbol = (code: string) => CURRENCIES.find(c => c.code === code)?.symbol || code;
 
-  if (data.length === 0) return <EmptyState text="No subscriptions tracked yet" icon="money.dollar.fill" colors={colors} />;
+  if (data.length === 0) return <EmptyState title="No subscriptions tracked yet" icon="money.dollar.fill" />;
 
   return (
     <View>
@@ -322,45 +312,30 @@ function EditSubscriptionModal({ item, onClose, onSaved, colors }: { item: Subsc
   };
 
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose}>
-      <ScreenContainer className="px-5">
-        <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 16, paddingBottom: 12, justifyContent: "space-between" }}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Pressable onPress={onClose} style={({ pressed }) => ({ padding: 4, opacity: pressed ? 0.6 : 1 })}>
-              <IconSymbol name="xmark" size={24} color={colors.foreground} />
-            </Pressable>
-            <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginLeft: 12 }}>Edit Subscription</Text>
-          </View>
-          <Pressable onPress={handleSave} style={({ pressed }) => ({ padding: 8, borderRadius: 10, backgroundColor: colors.primary, opacity: pressed ? 0.8 : 1 })}>
-            <Text style={{ fontSize: 14, fontWeight: "600", color: "#FFFFFF" }}>Save</Text>
+    <BottomSheetModal visible onClose={onClose} title="Edit Subscription">
+      <FormField label="Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} />
+      <FormField label="Category" value={form.category} onChangeText={(v) => setForm({ ...form, category: v })} />
+      <FormField label="Cost" value={String(form.cost)} onChangeText={(v) => setForm({ ...form, cost: parseFloat(v) || 0 })} keyboardType="decimal-pad" />
+      
+      <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Currency</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 16 }}>
+        {CURRENCIES.map((cur) => (
+          <Pressable key={cur.code} onPress={() => setForm({ ...form, currency: cur.code })}
+            style={({ pressed }) => ({ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8,
+              backgroundColor: form.currency === cur.code ? colors.primary : colors.surface, opacity: pressed ? 0.85 : 1 })}>
+            <Text style={{ fontSize: 13, fontWeight: "600", color: form.currency === cur.code ? "#FFF" : colors.muted }}>{cur.label}</Text>
           </Pressable>
-        </View>
-        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-          <View style={{ backgroundColor: colors.background, borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: colors.border, marginBottom: 16 }}>
-            <InputField label="Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} colors={colors} />
-            <InputField label="Category" value={form.category} onChangeText={(v) => setForm({ ...form, category: v })} colors={colors} />
-            <View style={{ flexDirection: "row", gap: 10, marginTop: 8, marginBottom: 8 }}>
-              <View style={{ flex: 1 }}>
-                <InputField label="Cost" value={String(form.cost)} onChangeText={(v) => setForm({ ...form, cost: parseFloat(v) || 0 })} colors={colors} />
-              </View>
-            </View>
-            <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Currency</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 12 }}>
-              {CURRENCIES.map((cur) => (
-                <Pressable key={cur.code} onPress={() => setForm({ ...form, currency: cur.code })}
-                  style={({ pressed }) => ({ paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8,
-                    backgroundColor: form.currency === cur.code ? colors.primary : colors.surface, opacity: pressed ? 0.85 : 1 })}>
-                  <Text style={{ fontSize: 11, fontWeight: "600", color: form.currency === cur.code ? "#FFF" : colors.muted }}>{cur.label}</Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-            <InputField label="Renewal Date" value={form.renewalDate || ""} onChangeText={(v) => setForm({ ...form, renewalDate: v })} colors={colors} />
-            <InputField label="URL" value={form.url || ""} onChangeText={(v) => setForm({ ...form, url: v })} colors={colors} />
-            <InputField label="Notes" value={form.notes || ""} onChangeText={(v) => setForm({ ...form, notes: v })} multiline colors={colors} />
-          </View>
-        </ScrollView>
-      </ScreenContainer>
-    </Modal>
+        ))}
+      </ScrollView>
+
+      <FormField label="Renewal Date" value={form.renewalDate || ""} onChangeText={(v) => setForm({ ...form, renewalDate: v })} />
+      <FormField label="URL" value={form.url || ""} onChangeText={(v) => setForm({ ...form, url: v })} autoCapitalize="none" keyboardType="url" />
+      <FormField label="Notes" value={form.notes || ""} onChangeText={(v) => setForm({ ...form, notes: v })} multiline />
+
+      <Pressable onPress={handleSave} style={({ pressed }) => ({ paddingVertical: 14, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", marginTop: 16, opacity: pressed ? 0.8 : 1 })}>
+        <Text style={{ fontSize: 15, fontWeight: "600", color: "#FFFFFF" }}>Save</Text>
+      </Pressable>
+    </BottomSheetModal>
   );
 }
 
@@ -375,7 +350,7 @@ function ReadingList({ data, onRefresh, colors }: { data: ReadingItem[]; onRefre
     ]);
   };
 
-  if (data.length === 0) return <EmptyState text="No reading items yet" icon="book.fill" colors={colors} />;
+  if (data.length === 0) return <EmptyState title="No reading items yet" icon="book.fill" />;
 
   return (
     <View>
@@ -428,30 +403,17 @@ function EditReadingModal({ item, onClose, onSaved, colors }: { item: ReadingIte
   };
 
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose}>
-      <ScreenContainer className="px-5">
-        <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 16, paddingBottom: 12, justifyContent: "space-between" }}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Pressable onPress={onClose} style={({ pressed }) => ({ padding: 4, opacity: pressed ? 0.6 : 1 })}>
-              <IconSymbol name="xmark" size={24} color={colors.foreground} />
-            </Pressable>
-            <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginLeft: 12 }}>Edit Reading</Text>
-          </View>
-          <Pressable onPress={handleSave} style={({ pressed }) => ({ padding: 8, borderRadius: 10, backgroundColor: colors.primary, opacity: pressed ? 0.8 : 1 })}>
-            <Text style={{ fontSize: 14, fontWeight: "600", color: "#FFFFFF" }}>Save</Text>
-          </Pressable>
-        </View>
-        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-          <View style={{ backgroundColor: colors.background, borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: colors.border, marginBottom: 16 }}>
-            <InputField label="Title" value={form.title} onChangeText={(v) => setForm({ ...form, title: v })} colors={colors} />
-            <InputField label="Author" value={form.author || ""} onChangeText={(v) => setForm({ ...form, author: v })} colors={colors} />
-            <InputField label="Start Date" value={form.startDate || ""} onChangeText={(v) => setForm({ ...form, startDate: v })} colors={colors} />
-            <InputField label="End Date" value={form.endDate || ""} onChangeText={(v) => setForm({ ...form, endDate: v })} colors={colors} />
-            <InputField label="Notes" value={form.notes || ""} onChangeText={(v) => setForm({ ...form, notes: v })} multiline colors={colors} />
-          </View>
-        </ScrollView>
-      </ScreenContainer>
-    </Modal>
+    <BottomSheetModal visible onClose={onClose} title="Edit Reading">
+      <FormField label="Title" value={form.title} onChangeText={(v) => setForm({ ...form, title: v })} />
+      <FormField label="Author" value={form.author || ""} onChangeText={(v) => setForm({ ...form, author: v })} />
+      <FormField label="Start Date" value={form.startDate || ""} onChangeText={(v) => setForm({ ...form, startDate: v })} />
+      <FormField label="End Date" value={form.endDate || ""} onChangeText={(v) => setForm({ ...form, endDate: v })} />
+      <FormField label="Notes" value={form.notes || ""} onChangeText={(v) => setForm({ ...form, notes: v })} multiline />
+
+      <Pressable onPress={handleSave} style={({ pressed }) => ({ paddingVertical: 14, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", marginTop: 16, opacity: pressed ? 0.8 : 1 })}>
+        <Text style={{ fontSize: 15, fontWeight: "600", color: "#FFFFFF" }}>Save</Text>
+      </Pressable>
+    </BottomSheetModal>
   );
 }
 
@@ -466,7 +428,7 @@ function AchievementsList({ data, onRefresh, colors }: { data: Achievement[]; on
     ]);
   };
 
-  if (data.length === 0) return <EmptyState text="No achievements yet. Start winning!" icon="star.fill" colors={colors} />;
+  if (data.length === 0) return <EmptyState title="No achievements yet" subtitle="Start winning!" icon="star.fill" />;
 
   return (
     <View>
@@ -512,60 +474,18 @@ function EditAchievementModal({ item, onClose, onSaved, colors }: { item: Achiev
   };
 
   return (
-    <Modal visible animationType="slide" onRequestClose={onClose}>
-      <ScreenContainer className="px-5">
-        <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 16, paddingBottom: 12, justifyContent: "space-between" }}>
-          <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Pressable onPress={onClose} style={({ pressed }) => ({ padding: 4, opacity: pressed ? 0.6 : 1 })}>
-              <IconSymbol name="xmark" size={24} color={colors.foreground} />
-            </Pressable>
-            <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginLeft: 12 }}>Edit Achievement</Text>
-          </View>
-          <Pressable onPress={handleSave} style={({ pressed }) => ({ padding: 8, borderRadius: 10, backgroundColor: colors.primary, opacity: pressed ? 0.8 : 1 })}>
-            <Text style={{ fontSize: 14, fontWeight: "600", color: "#FFFFFF" }}>Save</Text>
-          </Pressable>
-        </View>
-        <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-          <View style={{ backgroundColor: colors.background, borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: colors.border, marginBottom: 16 }}>
-            <InputField label="Title" value={form.title} onChangeText={(v) => setForm({ ...form, title: v })} colors={colors} />
-            <InputField label="Date" value={form.date || ""} onChangeText={(v) => setForm({ ...form, date: v })} colors={colors} />
-            <InputField label="Place" value={form.place || ""} onChangeText={(v) => setForm({ ...form, place: v })} colors={colors} />
-            <InputField label="Prize" value={form.prize || ""} onChangeText={(v) => setForm({ ...form, prize: v })} colors={colors} />
-            <InputField label="Description" value={form.description || ""} onChangeText={(v) => setForm({ ...form, description: v })} multiline colors={colors} />
-          </View>
-        </ScrollView>
-      </ScreenContainer>
-    </Modal>
+    <BottomSheetModal visible onClose={onClose} title="Edit Achievement">
+      <FormField label="Title" value={form.title} onChangeText={(v) => setForm({ ...form, title: v })} />
+      <FormField label="Date" value={form.date || ""} onChangeText={(v) => setForm({ ...form, date: v })} />
+      <FormField label="Place" value={form.place || ""} onChangeText={(v) => setForm({ ...form, place: v })} />
+      <FormField label="Prize" value={form.prize || ""} onChangeText={(v) => setForm({ ...form, prize: v })} />
+      <FormField label="Description" value={form.description || ""} onChangeText={(v) => setForm({ ...form, description: v })} multiline />
+
+      <Pressable onPress={handleSave} style={({ pressed }) => ({ paddingVertical: 14, borderRadius: 12, backgroundColor: colors.primary, alignItems: "center", marginTop: 16, opacity: pressed ? 0.8 : 1 })}>
+        <Text style={{ fontSize: 15, fontWeight: "600", color: "#FFFFFF" }}>Save</Text>
+      </Pressable>
+    </BottomSheetModal>
   );
 }
 
-function EmptyState({ text, icon, colors }: { text: string; icon: string; colors: any }) {
-  return (
-    <View style={{ alignItems: "center", paddingVertical: 60 }}>
-      <IconSymbol name={icon} size={48} color={colors.border} />
-      <Text style={{ fontSize: 15, color: colors.muted, marginTop: 12 }}>{text}</Text>
-    </View>
-  );
-}
 
-function InputField({ label, value, onChangeText, multiline, colors }: {
-  label: string; value: string; onChangeText: (v: string) => void; multiline?: boolean; colors: any;
-}) {
-  return (
-    <View style={{ marginBottom: 12 }}>
-      <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholderTextColor={colors.muted}
-        multiline={multiline}
-        numberOfLines={multiline ? 4 : 1}
-        style={{
-          backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
-          fontSize: 14, color: colors.foreground, textAlignVertical: multiline ? "top" : "center",
-          minHeight: multiline ? 100 : 42,
-        }}
-      />
-    </View>
-  );
-}

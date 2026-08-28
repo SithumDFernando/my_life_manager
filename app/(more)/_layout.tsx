@@ -8,6 +8,7 @@ export default function MoreLayout() {
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}>
       <Stack.Screen name="bio" />
       <Stack.Screen name="notes" />
+      <Stack.Screen name="note-editor" />
       <Stack.Screen name="competitions" />
       <Stack.Screen name="events" />
       <Stack.Screen name="venues" />
