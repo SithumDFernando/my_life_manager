@@ -59,11 +59,17 @@
 - [x] Create cross-platform alert helper (`lib/alert.ts`) supporting `window.alert`/`window.confirm` on Web and native dialogs on Mobile
 - [x] Implement comprehensive form validations and user warnings on Save across all modules
 
-## Phase 2: Navigation & Habits Hub
-- [ ] Reorganize Tab Bar (Dedicated Habits Tab + Projects moved to Tracker)
-- [ ] Build Habits Data Models & Storage Layer (`lib/types.ts` & `lib/storage.ts`)
-- [ ] Build Habits UI (Positive, Avoidance, Numeric, Weekly Quota e.g. 3x/week)
-- [ ] Build Gamification Engine (XP, Levels, Streak Shields, 24h Grace Window)
+## Phase 2: Navigation & Habits Hub (Complete)
+- [x] Reorganize Tab Bar (Dedicated Habits Tab + Projects moved to Tracker)
+- [x] Build Habits Data Models & Storage Layer (`lib/types.ts` & `lib/storage.ts`)
+- [x] Build Habits UI (Positive, Avoidance, Numeric, Weekly Quota e.g. 3x/week)
+- [x] Build Gamification Engine (XP, Levels, Streak Shields, 24h Grace Window)
+
+## Phase 2.5: Strategic Hub, Daily Unified Execution & Full CRUD (Complete)
+- [x] Update Master Targets schema and log full CRUD storage
+- [x] Rebrand Habits tab to Improve tab
+- [x] Build Improve Hub (Master Targets management, Analytics views)
+- [x] Refactor Daily tab (Unified Tasks + Habits checklist, 24h grace window)
 
 ## Phase 3: Developer Info, Feedback & Help
 - [ ] Build Developer Showcase & Feedback Modal with Quality Rating Sliders

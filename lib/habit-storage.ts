@@ -6,6 +6,7 @@ export const HABIT_KEYS = {
   HABITS: "@mylife_habits",
   HABIT_LOGS: "@mylife_habit_logs",
   HABIT_STATS: "@mylife_habit_stats",
+  MASTER_TARGETS: "@mylife_master_targets",
 };
 
 // Generic Helpers
@@ -108,6 +109,63 @@ export const habits = {
 };
 
 // =======================
+// MASTER TARGETS CRUD
+// =======================
+import type { MasterTarget } from "./types";
+
+export const targets = {
+  getAll: async () => {
+    const all = await getAll<MasterTarget>(HABIT_KEYS.MASTER_TARGETS);
+    return all;
+  },
+  getById: async (id: string) => {
+    const all = await getAll<MasterTarget>(HABIT_KEYS.MASTER_TARGETS);
+    return all.find((t) => t.id === id) || null;
+  },
+  add: async (data: Omit<MasterTarget, "id" | "createdAt" | "updatedAt">) => {
+    const target: MasterTarget = {
+      ...data,
+      id: generateId(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    const all = await getAll<MasterTarget>(HABIT_KEYS.MASTER_TARGETS);
+    all.push(target);
+    await saveAll(HABIT_KEYS.MASTER_TARGETS, all);
+    return target;
+  },
+  update: async (id: string, updates: Partial<MasterTarget>) => {
+    const all = await getAll<MasterTarget>(HABIT_KEYS.MASTER_TARGETS);
+    const index = all.findIndex((t) => t.id === id);
+    if (index !== -1) {
+      all[index] = { ...all[index], ...updates, updatedAt: new Date().toISOString() };
+      await saveAll(HABIT_KEYS.MASTER_TARGETS, all);
+    }
+  },
+  delete: async (id: string, cascadeHabits: boolean = false) => {
+    const all = await getAll<MasterTarget>(HABIT_KEYS.MASTER_TARGETS);
+    await saveAll(HABIT_KEYS.MASTER_TARGETS, all.filter((t) => t.id !== id));
+    
+    const allHabits = await getAll<Habit>(HABIT_KEYS.HABITS);
+    let changed = false;
+    for (const h of allHabits) {
+      if (h.targetId === id) {
+        if (cascadeHabits) {
+          h.archived = true;
+        } else {
+          h.targetId = undefined;
+        }
+        h.updatedAt = new Date().toISOString();
+        changed = true;
+      }
+    }
+    if (changed) {
+      await saveAll(HABIT_KEYS.HABITS, allHabits);
+    }
+  },
+};
+
+// =======================
 // HABIT LOGS
 // =======================
 export const habitLogs = {
@@ -196,12 +254,13 @@ export const habitLogs = {
     await saveAll(HABIT_KEYS.HABIT_LOGS, all);
     return log;
   },
-  setNumericValue: async (habitId: string, date: string, value: number): Promise<HabitLog> => {
+  setNumericValue: async (habitId: string, date: string, value: number, note?: string): Promise<HabitLog> => {
     const all = await getAll<HabitLog>(HABIT_KEYS.HABIT_LOGS);
     let log = all.find((l) => l.habitId === habitId && l.date === date);
     
     if (log) {
       log.numericValue = value;
+      if (note !== undefined) log.note = note;
       log.loggedAt = new Date().toISOString();
     } else {
       log = {
@@ -210,6 +269,7 @@ export const habitLogs = {
         date,
         completed: false,
         numericValue: value,
+        note,
         loggedAt: new Date().toISOString(),
       };
       all.push(log);
@@ -217,6 +277,21 @@ export const habitLogs = {
     
     await saveAll(HABIT_KEYS.HABIT_LOGS, all);
     return log;
+  },
+  removeLog: async (habitId: string, date: string): Promise<void> => {
+    const all = await getAll<HabitLog>(HABIT_KEYS.HABIT_LOGS);
+    const filtered = all.filter((l) => !(l.habitId === habitId && l.date === date));
+    await saveAll(HABIT_KEYS.HABIT_LOGS, filtered);
+  },
+  updateLog: async (habitId: string, date: string, updates: Partial<HabitLog>): Promise<HabitLog | null> => {
+    const all = await getAll<HabitLog>(HABIT_KEYS.HABIT_LOGS);
+    const index = all.findIndex((l) => l.habitId === habitId && l.date === date);
+    if (index !== -1) {
+      all[index] = { ...all[index], ...updates, loggedAt: new Date().toISOString() };
+      await saveAll(HABIT_KEYS.HABIT_LOGS, all);
+      return all[index];
+    }
+    return null;
   },
   getWeeklyCount: async (habitId: string, date: string): Promise<number> => {
     const { start, end } = getWeekBounds(date);

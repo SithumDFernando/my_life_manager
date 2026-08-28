@@ -57,7 +57,7 @@ export default function HomeScreen() {
   const greeting = today.getHours() < 12 ? "Good morning" : today.getHours() < 17 ? "Good afternoon" : "Good evening";
 
   const modules: ModuleCard[] = [
-    { title: "Habits", subtitle: `Level ${gamification.level}`, icon: "bolt.fill", iconColor: "#F59E0B", route: "/(tabs)/habits" },
+    { title: "Improve", subtitle: `Level ${gamification.level}`, icon: "sparkles", iconColor: "#F59E0B", route: "/(tabs)/improve" },
     { title: "Accounts", subtitle: `${counts.accounts} saved`, icon: "key.fill", iconColor: colors.primary, route: "/(tabs)/tracker?tab=accounts", count: counts.accounts },
     { title: "Subscriptions", subtitle: `${counts.subscriptions} active`, icon: "money.dollar.fill", iconColor: colors.success, route: "/(tabs)/tracker?tab=subscriptions", count: counts.subscriptions },
     { title: "Projects", subtitle: `${counts.projects} ongoing`, icon: "folder_special", iconColor: colors.primary, route: "/(tabs)/tracker?tab=projects", count: counts.projects },

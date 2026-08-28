@@ -94,6 +94,12 @@ const MAPPING = {
   "chart.line.uptrend.xyaxis": "show-chart",
   "block": "block",
   "repeat": "repeat",
+  "plus.circle.fill": "add-circle",
+  "shield.slash.fill": "gpp-bad",
+  "checkmark.seal.fill": "verified",
+  "target": "track-changes",
+  "bolt": "bolt",
+  "chart.pie.fill": "pie-chart",
 } as unknown as IconMapping;
 
 export function IconSymbol({

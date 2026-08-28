@@ -35,6 +35,14 @@ export const SUBSCRIPTION_CATEGORIES = [
 
 export type CurrencyCode = typeof CURRENCIES[number]["code"];
 
+export const DEFAULT_HABIT_CATEGORIES = [
+  "Health", "Fitness", "Career", "Finance", "Mindfulness", "Productivity", "Social", "Learning"
+];
+
+export const DEFAULT_MASTER_TARGETS = [
+  "Get Fit", "Build Discipline", "Learn More", "Save Money", "Inner Peace", "Career Growth"
+];
+
 // ========================
 // GAMIFICATION & HABITS
 // ========================

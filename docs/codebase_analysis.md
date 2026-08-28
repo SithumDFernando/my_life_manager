@@ -15,6 +15,7 @@
 - 📖 **Reading tracker** (books, research papers, articles)
 - 🏆 **Achievements** (hackathon wins, awards, certifications)
 - 🏅 **Competitions** (upcoming/past events & results)
+- 🎯 **Master Targets & Habits** (strategy hub, daily unified execution, analytics)
 - 📅 **Events** (meetings, deadlines, hackathons)
 - 📍 **Venues** (locations)
 - 📝 **Notes** (categorized quick notes)
@@ -122,7 +123,8 @@ my_life_manager/
 │   ├── (tabs)/                   #    Main tab bar screens
 │   │   ├── _layout.tsx           #    Tab bar configuration
 │   │   ├── index.tsx             #    Dashboard/Home screen
-│   │   ├── daily.tsx             #    Daily tasks screen
+│   │   ├── daily.tsx             #    Daily Tasks & Habits execution
+│   │   ├── improve.tsx           #    Strategic Hub (Targets & Analytics)
 │   │   ├── projects.tsx          #    Projects screen
 │   │   ├── tracker.tsx           #    Tracker (accounts/subs/reading/achievements)
 │   │   └── more.tsx              #    More screen (settings hub)
@@ -151,6 +153,9 @@ my_life_manager/
 │   ├── haptic-tab.tsx            #    Tab button with haptic feedback
 │   ├── themed-view.tsx           #    Theme-aware View wrapper
 │   ├── external-link.tsx         #    Web link opener (uses Linking API)
+│   ├── habits/
+│   │   ├── habit-log-modal.tsx   #    Full CRUD logger for habits
+│   │   └── habit-analytics-modal.tsx # Analytics deep-dive for habits
 │   └── ui/
 │       ├── icon-symbol.tsx       #    Icon component (SF Symbols → Material Icons)
 │       ├── icon-symbol.ios.tsx   #    iOS-specific native SF Symbols
@@ -162,7 +167,8 @@ my_life_manager/
 │       ├── form-field.tsx        #    Standardized text input field
 │       ├── location-link-button.tsx # Maps deeplink button
 │       ├── screen-header.tsx     #    Standardized screen header
-│       └── search-bar.tsx        #    Standardized search bar
+│       ├── search-bar.tsx        #    Standardized search bar
+│       └── suggestion-field.tsx  #    Input with dynamic suggestion chips
 │
 ├── lib/                          # 📚 CORE BUSINESS LOGIC
 │   ├── storage.ts                #    ⭐ ALL data operations (CRUD for every module)
@@ -282,10 +288,11 @@ graph TB
     subgraph "📋 Main Tabs"
         C["app/(tabs)/_layout.tsx<br/>(Tab Navigator)"]
         D["Dashboard<br/>index.tsx"]
-        E["Daily Tasks<br/>daily.tsx"]
-        F["Projects<br/>projects.tsx"]
-        G["Tracker<br/>tracker.tsx"]
-        H["More<br/>more.tsx"]
+        E["Daily Execution<br/>daily.tsx"]
+        F["Improve Hub<br/>improve.tsx"]
+        G["Projects<br/>projects.tsx"]
+        H["Tracker<br/>tracker.tsx"]
+        I["More<br/>more.tsx"]
     end
 
     subgraph "📝 Add Forms"
@@ -413,11 +420,18 @@ Shows:
 - Quick stats bar: Accounts count, Active subscriptions, Pending tasks
 - Module cards grid (2 columns): tappable cards linking to each section
 
-#### [`app/(tabs)/daily.tsx`](../app/(tabs)/daily.tsx) — Daily Tasks
-- Date header with completion counter
-- Quick-add task input + blue "+" button
-- Task list with circular checkboxes (green when completed) + delete button
-- **Day transition logic**: When opened on a new day, shows "Carry Over" modal for yesterday's unfinished tasks, and optionally shows yesterday's completion report
+#### [`app/(tabs)/daily.tsx`](../app/(tabs)/daily.tsx) — Daily Execution
+- **24-Hour Grace Window**: Top toggle allows switching between "Yesterday" and "Today".
+- **Combined Progress**: Progress bar tracking both completed Tasks and Habits.
+- **Habits Checklist**: List of all active habits. Positive/Avoidance toggles, and Numeric habits open the `HabitLogModal` for exact value entry and notes.
+- **To-Do List**: Quick-add task input + blue "+" button, circular checkboxes.
+- **Day transition logic**: When opened on a new day, shows "Carry Over" modal for yesterday's unfinished tasks.
+
+#### [`app/(tabs)/improve.tsx`](../app/(tabs)/improve.tsx) — Strategic Hub
+- **Master Targets**: Define high-level goals with flexible deadlines (None/Deadline/Range).
+- **Habits Management**: Create and link habits (Positive/Avoidance/Numeric) to Master Targets.
+- **Analytics**: Tap the chart icon on any habit to view the `HabitAnalyticsModal` (Streaks, Consistency, XP).
+- **Gamification**: Banner shows current Level, XP, and rank title.
 
 #### [`app/(tabs)/projects.tsx`](../app/(tabs)/projects.tsx) — Projects Manager
 - Filter bar: All / Ongoing / Completed / On Hold / Planned
@@ -481,6 +495,9 @@ Defines TypeScript interfaces for every data entity:
 | `Achievement` | id, title, type, date, place, prize, competitionId |
 | `Project` | id, title, status, githubRepo, techStack, serviceAccounts |
 | `ProjectServiceAccount` | service, accountEmail, accountId |
+| `MasterTarget` | id, title, description, category, dateType, startDate, endDate |
+| `Habit` | id, name, category, targetId, habitType, frequency, numericTarget |
+| `HabitLog` | id, habitId, date, completed, numericValue, note |
 | `AppSettings` | pinSet, lastOpenDate, lastReportDate |
 
 #### [`lib/storage.ts`](../lib/storage.ts) — The Data Layer

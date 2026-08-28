@@ -196,27 +196,41 @@ export interface AppSettings {
   gamification?: GamificationProfile;
 }
 
-// ========================
-// HABITS & GAMIFICATION
-// ========================
+// ==========================================
+// Phase 2.5: Habit & Gamification Models
+// ==========================================
 
-// Habit frequency configuration
-export type HabitFrequencyType = "daily" | "weekly";
+export type TargetDateType = "none" | "deadline" | "range";
+
+export interface MasterTarget {
+  id: string;
+  title: string;
+  description?: string;
+  category?: string;
+  dateType: TargetDateType;
+  startDate?: string;
+  endDate?: string;
+  color?: string;
+  status: "active" | "completed" | "archived";
+  createdAt: string;
+  updatedAt: string;
+}
 
 export type HabitType = "positive" | "avoidance" | "numeric";
+export type HabitFrequencyType = "daily" | "weekly";
 
 export interface HabitFrequency {
   type: HabitFrequencyType;
-  /** For weekly: how many times per week (e.g., 3 for "3x/week"). Ignored for daily. */
-  weeklyTarget?: number;
+  weeklyTarget?: number; // E.g., 3 times a week
 }
 
-// Core Habit entity
 export interface Habit {
   id: string;
+  targetId?: string;    // Links to MasterTarget.id
+  targetName?: string;  // Fallback for ad-hoc grouping
   name: string;
-  /** Free-text category for grouping (e.g., "Fitness", "Career", "Health") */
   category: string;
+  emoji?: string;
   /** The interaction model: positive (tap to check), avoidance (shield), numeric (stepper) */
   habitType: HabitType;
   /** Frequency configuration */
@@ -227,12 +241,8 @@ export interface Habit {
   numericUnit?: string;
   /** Quick-add chip values for numeric habits (e.g., [250, 500, 1000] for water) */
   numericQuickAdds?: number[];
-  /** Optional grouping label for identity targets (e.g., "Get Shredded") */
-  targetName?: string;
   /** Custom color hex for the habit card accent (optional) */
   color?: string;
-  /** Emoji icon for the habit (e.g., "🏋️", "💧", "📖") */
-  emoji?: string;
   /** Soft-delete: hidden from active board but logs/XP retained */
   archived: boolean;
   /** ISO date string of creation */
