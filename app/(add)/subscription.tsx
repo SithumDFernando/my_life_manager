@@ -5,6 +5,8 @@ import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { subscriptions as subStorage } from "@/lib/storage";
 import type { Subscription } from "@/lib/types";
+import { CURRENCIES, SUBSCRIPTION_CATEGORIES } from "@/lib/constants";
+import { useColors } from "@/hooks/use-colors";
 import * as Haptics from "expo-haptics";
 import { Platform } from "react-native";
 
@@ -23,6 +25,7 @@ const STATUS_OPTIONS: { key: Subscription["status"]; label: string }[] = [
 
 export default function AddSubscriptionScreen() {
   const router = useRouter();
+  const colors = useColors();
   const [form, setForm] = useState({
     name: "", category: "", cost: "", currency: "USD",
     billingCycle: "monthly" as Subscription["billingCycle"],
@@ -45,78 +48,95 @@ export default function AddSubscriptionScreen() {
       <View style={{ flexDirection: "row", alignItems: "center", paddingTop: 16, paddingBottom: 12, justifyContent: "space-between" }}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <Pressable onPress={() => router.back()} style={({ pressed }) => ({ padding: 4, opacity: pressed ? 0.6 : 1 })}>
-            <IconSymbol name="arrow.left" size={24} color="#1A1A2E" />
+            <IconSymbol name="arrow.left" size={24} color={colors.foreground} />
           </Pressable>
-          <Text style={{ fontSize: 20, fontWeight: "700", color: "#1A1A2E", marginLeft: 12 }}>Add Subscription</Text>
+          <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginLeft: 12 }}>Add Subscription</Text>
         </View>
-        <Pressable onPress={handleSave} style={({ pressed }) => ({ padding: 8, borderRadius: 10, backgroundColor: "#5B8DEF", opacity: pressed ? 0.8 : 1 })}>
+        <Pressable onPress={handleSave} style={({ pressed }) => ({ padding: 8, borderRadius: 10, backgroundColor: colors.primary, opacity: pressed ? 0.8 : 1 })}>
           <Text style={{ fontSize: 14, fontWeight: "600", color: "#FFFFFF" }}>Save</Text>
         </Pressable>
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: 100 }}>
-        <View style={{ backgroundColor: "#FFFFFF", borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: "#E8EAED", marginBottom: 16 }}>
-          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6 }}>Name</Text>
+        <View style={{ backgroundColor: colors.background, borderRadius: 14, padding: 16, borderWidth: 0.5, borderColor: colors.border, marginBottom: 16 }}>
+          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Name</Text>
           <TextInput value={form.name} onChangeText={(v) => setForm({ ...form, name: v })}
-            placeholder="e.g., Netflix, Spotify" style={inputStyle} placeholderTextColor="#8B8FA3" />
+            placeholder="e.g., Netflix, Spotify" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
 
-          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6, marginTop: 12 }}>Category</Text>
+          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Category</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 6 }}>
+            {SUBSCRIPTION_CATEGORIES.map((cat) => (
+              <Pressable key={cat} onPress={() => setForm({ ...form, category: cat })}
+                style={({ pressed }) => ({ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10,
+                  backgroundColor: form.category === cat ? colors.primary : colors.surface, opacity: pressed ? 0.85 : 1 })}>
+                <Text style={{ fontSize: 12, fontWeight: "600", color: form.category === cat ? "#FFF" : colors.muted }}>{cat}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
           <TextInput value={form.category} onChangeText={(v) => setForm({ ...form, category: v })}
-            placeholder="e.g., Entertainment" style={inputStyle} placeholderTextColor="#8B8FA3" />
+            placeholder="Or type custom category" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
 
           <View style={{ flexDirection: "row", gap: 10, marginTop: 12 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6 }}>Cost</Text>
+              <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Cost</Text>
               <TextInput value={form.cost} onChangeText={(v) => setForm({ ...form, cost: v })}
-                placeholder="0.00" keyboardType="decimal-pad" style={inputStyle} placeholderTextColor="#8B8FA3" />
-            </View>
-            <View style={{ width: 80 }}>
-              <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6 }}>Currency</Text>
-              <TextInput value={form.currency} onChangeText={(v) => setForm({ ...form, currency: v })}
-                placeholder="USD" style={inputStyle} placeholderTextColor="#8B8FA3" />
+                placeholder="0.00" keyboardType="decimal-pad" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
             </View>
           </View>
 
-          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6, marginTop: 12 }}>Billing Cycle</Text>
+          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Currency</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 12 }}>
+            {CURRENCIES.map((cur) => (
+              <Pressable key={cur.code} onPress={() => setForm({ ...form, currency: cur.code })}
+                style={({ pressed }) => ({ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10,
+                  backgroundColor: form.currency === cur.code ? colors.primary : colors.surface, opacity: pressed ? 0.85 : 1 })}>
+                <Text style={{ fontSize: 12, fontWeight: "600", color: form.currency === cur.code ? "#FFF" : colors.muted }}>{cur.label}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+
+          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Billing Cycle</Text>
           <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
             {BILLING_OPTIONS.map((opt) => (
               <Pressable key={opt.key} onPress={() => setForm({ ...form, billingCycle: opt.key })}
                 style={({ pressed }) => ({ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10,
-                  backgroundColor: form.billingCycle === opt.key ? "#5B8DEF" : "#F7F8FA", opacity: pressed ? 0.85 : 1 })}>
-                <Text style={{ fontSize: 12, fontWeight: "600", color: form.billingCycle === opt.key ? "#FFF" : "#8B8FA3" }}>{opt.label}</Text>
+                  backgroundColor: form.billingCycle === opt.key ? colors.primary : colors.surface, opacity: pressed ? 0.85 : 1 })}>
+                <Text style={{ fontSize: 12, fontWeight: "600", color: form.billingCycle === opt.key ? "#FFF" : colors.muted }}>{opt.label}</Text>
               </Pressable>
             ))}
           </View>
 
-          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6 }}>Renewal Date</Text>
+          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Renewal Date</Text>
           <TextInput value={form.renewalDate} onChangeText={(v) => setForm({ ...form, renewalDate: v })}
-            placeholder="YYYY-MM-DD" style={inputStyle} placeholderTextColor="#8B8FA3" />
+            placeholder="YYYY-MM-DD" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
 
-          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6, marginTop: 12 }}>Status</Text>
+          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Status</Text>
           <View style={{ flexDirection: "row", gap: 6, marginBottom: 12 }}>
             {STATUS_OPTIONS.map((opt) => (
               <Pressable key={opt.key} onPress={() => setForm({ ...form, status: opt.key })}
                 style={({ pressed }) => ({ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10,
-                  backgroundColor: form.status === opt.key ? "#5B8DEF" : "#F7F8FA", opacity: pressed ? 0.85 : 1 })}>
-                <Text style={{ fontSize: 12, fontWeight: "600", color: form.status === opt.key ? "#FFF" : "#8B8FA3" }}>{opt.label}</Text>
+                  backgroundColor: form.status === opt.key ? colors.primary : colors.surface, opacity: pressed ? 0.85 : 1 })}>
+                <Text style={{ fontSize: 12, fontWeight: "600", color: form.status === opt.key ? "#FFF" : colors.muted }}>{opt.label}</Text>
               </Pressable>
             ))}
           </View>
 
-          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6 }}>URL (optional)</Text>
+          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>URL (optional)</Text>
           <TextInput value={form.url} onChangeText={(v) => setForm({ ...form, url: v })}
-            placeholder="https://..." style={inputStyle} placeholderTextColor="#8B8FA3" autoCapitalize="none" />
+            placeholder="https://..." style={getInputStyle(colors)} placeholderTextColor={colors.muted} autoCapitalize="none" />
 
-          <Text style={{ fontSize: 13, color: "#8B8FA3", marginBottom: 6, marginTop: 12 }}>Notes (optional)</Text>
+          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Notes (optional)</Text>
           <TextInput value={form.notes} onChangeText={(v) => setForm({ ...form, notes: v })}
-            placeholder="Additional notes" style={{ ...inputStyle, minHeight: 80, textAlignVertical: "top" }} placeholderTextColor="#8B8FA3" multiline />
+            placeholder="Additional notes" style={{ ...getInputStyle(colors), minHeight: 80, textAlignVertical: "top" }} placeholderTextColor={colors.muted} multiline />
         </View>
       </ScrollView>
     </ScreenContainer>
   );
 }
 
-const inputStyle = {
-  backgroundColor: "#F7F8FA", borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
-  fontSize: 14, color: "#1A1A2E",
-};
+function getInputStyle(colors: any) {
+  return {
+    backgroundColor: colors.surface, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 10,
+    fontSize: 14, color: colors.foreground,
+  };
+}

@@ -103,7 +103,7 @@ export default function PinLockScreen() {
   const getCurrentPin = () => (step === "confirm" ? confirmPin : pin);
 
   return (
-    <ScreenContainer edges={["top", "bottom", "left", "right"]} containerClassName="bg-background">
+    <ScreenContainer edges={["top", "bottom", "left", "right"]}>
       <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 32 }}>
         {/* Icon */}
         <View style={{ marginBottom: 24, opacity: 0.6 }}>
@@ -111,7 +111,7 @@ export default function PinLockScreen() {
         </View>
 
         {/* Title */}
-        <Text style={{ fontSize: 24, fontWeight: "700", color: colors.text, marginBottom: 8 }}>
+        <Text style={{ fontSize: 24, fontWeight: "700", color: colors.foreground, marginBottom: 8 }}>
           {getTitle()}
         </Text>
         <Text style={{ fontSize: 15, color: colors.muted, textAlign: "center", marginBottom: 32 }}>
@@ -165,9 +165,9 @@ export default function PinLockScreen() {
                   })}
                 >
                   {key === "del" ? (
-                    <IconSymbol name="xmark" size={24} color={colors.text} />
+                    <IconSymbol name="xmark" size={24} color={colors.foreground} />
                   ) : key === "" ? null : (
-                    <Text style={{ fontSize: 28, fontWeight: "400", color: colors.text }}>{key}</Text>
+                    <Text style={{ fontSize: 28, fontWeight: "400", color: colors.foreground }}>{key}</Text>
                   )}
                 </Pressable>
               ))}

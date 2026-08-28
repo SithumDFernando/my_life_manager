@@ -69,6 +69,10 @@ export interface Competition {
   endDate?: string;
   venueId?: string;
   result?: string;
+  organizer?: string;
+  teamOrIndividual?: "team" | "individual";
+  prizeAmount?: number;
+  prizeCurrency?: string;
   notes?: string;
   linkedProjectIds?: string[];
   linkedAchievementIds?: string[];

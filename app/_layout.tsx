@@ -26,6 +26,36 @@ export const unstable_settings = {
   anchor: "(tabs)",
 };
 
+import { useColors } from "@/hooks/use-colors";
+import { useThemeContext } from "@/lib/theme-provider";
+
+function RootNavigation({ trpcClient, queryClient }: { trpcClient: any; queryClient: any }) {
+  const colors = useColors();
+  const { colorScheme } = useThemeContext();
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
+      <trpc.Provider client={trpcClient} queryClient={queryClient}>
+        <QueryClientProvider client={queryClient}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: colors.background },
+            }}
+          >
+            <Stack.Screen name="(pin-lock)" />
+            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(add)" />
+            <Stack.Screen name="(more)" />
+            <Stack.Screen name="oauth/callback" />
+          </Stack>
+          <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+        </QueryClientProvider>
+      </trpc.Provider>
+    </GestureHandlerRootView>
+  );
+}
+
 export default function RootLayout() {
   const initialInsets = initialWindowMetrics?.insets ?? DEFAULT_WEB_INSETS;
   const initialFrame = initialWindowMetrics?.frame ?? DEFAULT_WEB_FRAME;
@@ -55,9 +85,7 @@ export default function RootLayout() {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Disable automatic refetching on window focus for mobile
             refetchOnWindowFocus: false,
-            // Retry failed requests once
             retry: 1,
           },
         },
@@ -78,26 +106,6 @@ export default function RootLayout() {
     };
   }, [initialInsets, initialFrame]);
 
-  const content = (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <trpc.Provider client={trpcClient} queryClient={queryClient}>
-        <QueryClientProvider client={queryClient}>
-          {/* Default to hiding native headers so raw route segments don't appear (e.g. "(tabs)", "products/[id]"). */}
-          {/* If a screen needs the native header, explicitly enable it and set a human title via Stack.Screen options. */}
-          {/* in order for ios apps tab switching to work properly, use presentation: "fullScreenModal" for login page, whenever you decide to use presentation: "modal*/}
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="(pin-lock)" />
-            <Stack.Screen name="(tabs)" />
-            <Stack.Screen name="(add)" />
-            <Stack.Screen name="(more)" />
-            <Stack.Screen name="oauth/callback" />
-          </Stack>
-          <StatusBar style="auto" />
-        </QueryClientProvider>
-      </trpc.Provider>
-    </GestureHandlerRootView>
-  );
-
   const shouldOverrideSafeArea = Platform.OS === "web";
 
   if (shouldOverrideSafeArea) {
@@ -106,7 +114,7 @@ export default function RootLayout() {
         <SafeAreaProvider initialMetrics={providerInitialMetrics}>
           <SafeAreaFrameContext.Provider value={frame}>
             <SafeAreaInsetsContext.Provider value={insets}>
-              {content}
+              <RootNavigation trpcClient={trpcClient} queryClient={queryClient} />
             </SafeAreaInsetsContext.Provider>
           </SafeAreaFrameContext.Provider>
         </SafeAreaProvider>
@@ -116,7 +124,9 @@ export default function RootLayout() {
 
   return (
     <ThemeProvider>
-      <SafeAreaProvider initialMetrics={providerInitialMetrics}>{content}</SafeAreaProvider>
+      <SafeAreaProvider initialMetrics={providerInitialMetrics}>
+        <RootNavigation trpcClient={trpcClient} queryClient={queryClient} />
+      </SafeAreaProvider>
     </ThemeProvider>
   );
 }
