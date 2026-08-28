@@ -14,6 +14,7 @@ import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 
 import { useColors } from "@/hooks/use-colors";
+import { showAlert } from "@/lib/alert";
 
 type TabType = "accounts" | "subscriptions" | "reading" | "achievements";
 
@@ -129,7 +130,7 @@ function AccountsList({ data, onRefresh, colors }: { data: Account[]; onRefresh:
   });
 
   const handleDelete = (id: string, name: string) => {
-    Alert.alert("Delete Account", `Delete "${name}"?`, [
+    showAlert("Delete Account", `Delete "${name}"?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: async () => { await accounts.delete(id); onRefresh(); } },
     ]);
@@ -139,7 +140,7 @@ function AccountsList({ data, onRefresh, colors }: { data: Account[]; onRefresh:
     await Clipboard.setStringAsync(text);
     if (Platform.OS !== "web") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      Alert.alert("Copied!", "Text copied to clipboard", [{ text: "OK", style: "default" }]);
+      showAlert("Copied!", "Text copied to clipboard", [{ text: "OK", style: "default" }]);
     }
   };
 
@@ -246,7 +247,7 @@ function SubscriptionsList({ data, onRefresh, colors }: { data: Subscription[]; 
   const [editingItem, setEditingItem] = useState<Subscription | null>(null);
 
   const handleDelete = (id: string, name: string) => {
-    Alert.alert("Delete Subscription", `Delete "${name}"?`, [
+    showAlert("Delete Subscription", `Delete "${name}"?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: async () => { await subscriptions.delete(id); onRefresh(); } },
     ]);
@@ -344,7 +345,7 @@ function ReadingList({ data, onRefresh, colors }: { data: ReadingItem[]; onRefre
   const [editingItem, setEditingItem] = useState<ReadingItem | null>(null);
 
   const handleDelete = (id: string, title: string) => {
-    Alert.alert("Delete", `Delete "${title}"?`, [
+    showAlert("Delete", `Delete "${title}"?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: async () => { await readingItems.delete(id); onRefresh(); } },
     ]);
@@ -422,7 +423,7 @@ function AchievementsList({ data, onRefresh, colors }: { data: Achievement[]; on
   const [editingItem, setEditingItem] = useState<Achievement | null>(null);
 
   const handleDelete = (id: string, title: string) => {
-    Alert.alert("Delete", `Delete "${title}"?`, [
+    showAlert("Delete", `Delete "${title}"?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: async () => { await achievements.delete(id); onRefresh(); } },
     ]);

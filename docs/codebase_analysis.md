@@ -58,7 +58,7 @@
 
 ```bash
 # 1. Navigate to the project
-cd "c:\Users\sithu\MyWorks\My Softwares\Mobile_Apps\my_life_manager"
+cd my_life_manager
 
 # 2. Install all dependencies
 pnpm install
@@ -136,6 +136,7 @@ my_life_manager/
 │   │   ├── _layout.tsx           #    Stack navigator wrapper
 │   │   ├── bio.tsx               #    Bio data editor
 │   │   ├── notes.tsx             #    Notes manager
+│   │   ├── note-editor.tsx       #    Full-screen native notes editor
 │   │   ├── competitions.tsx      #    Competitions manager
 │   │   ├── events.tsx            #    Events manager
 │   │   ├── venues.tsx            #    Venues manager
@@ -149,13 +150,19 @@ my_life_manager/
 │   ├── screen-container.tsx      #    SafeArea + background wrapper
 │   ├── haptic-tab.tsx            #    Tab button with haptic feedback
 │   ├── themed-view.tsx           #    Theme-aware View wrapper
-│   ├── hello-wave.tsx            #    Animated wave emoji (unused)
-│   ├── parallax-scroll-view.tsx  #    Parallax header scroll (unused)
-│   ├── external-link.tsx         #    Web link opener
+│   ├── external-link.tsx         #    Web link opener (uses Linking API)
 │   └── ui/
 │       ├── icon-symbol.tsx       #    Icon component (SF Symbols → Material Icons)
 │       ├── icon-symbol.ios.tsx   #    iOS-specific native SF Symbols
-│       └── collapsible.tsx       #    Collapsible/accordion component
+│       ├── collapsible.tsx       #    Collapsible/accordion component
+│       ├── bottom-sheet-modal.tsx#    iOS-style bottom sheet modal
+│       ├── category-pill-selector.tsx # Pill-shaped selector row
+│       ├── date-picker-field.tsx #    Native date/time picker
+│       ├── empty-state.tsx       #    Standardized empty state view
+│       ├── form-field.tsx        #    Standardized text input field
+│       ├── location-link-button.tsx # Maps deeplink button
+│       ├── screen-header.tsx     #    Standardized screen header
+│       └── search-bar.tsx        #    Standardized search bar
 │
 ├── lib/                          # 📚 CORE BUSINESS LOGIC
 │   ├── storage.ts                #    ⭐ ALL data operations (CRUD for every module)
@@ -233,8 +240,14 @@ my_life_manager/
 ├── tests/                        # 🧪 TESTS
 │   └── auth.logout.test.ts       #    Auth logout test
 │
-├── docs/                         # 📄 DOCUMENTATION (empty)
+├── docs/                         # 📄 DOCUMENTATION
+│   ├── codebase_analysis.md      #    Codebase architecture guide
+│   ├── diagnostics_and_fixes.md  #    Bug resolution history
+│   ├── todo.md                   #    ✅ PROJECT TODO LIST
+│   └── v2/                       #    Upgrade & feature specs
+│       └── upgrade_brainstorming_and_architecture.md
 │
+├── eas.json                      # 🚀 EAS BUILD CONFIGURATION
 ├── app.config.ts                 # ⚙️ EXPO CONFIGURATION
 ├── package.json                  # 📦 DEPENDENCIES & SCRIPTS
 ├── tsconfig.json                 # 📐 TYPESCRIPT CONFIG
@@ -249,7 +262,6 @@ my_life_manager/
 ├── .watchmanconfig               # 👀 FILE WATCHER CONFIG
 ├── .gitignore                    # 🚫 GIT IGNORE RULES
 ├── design.md                     # 📋 UI/UX DESIGN PLAN
-├── todo.md                       # ✅ PROJECT TODO LIST
 └── template.json                 # 🏗️ MANUS TEMPLATE DEFINITION
 ```
 
@@ -311,11 +323,11 @@ graph TB
 
 ### The Data Flow
 
-1. **App starts** → [app/_layout.tsx](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/app/_layout.tsx) loads — wraps everything in ThemeProvider, tRPC Provider, QueryClient, and SafeAreaProvider
-2. **PIN Lock** → [app/(pin-lock)/index.tsx](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/app/(pin-lock)/index.tsx) checks if a PIN exists. If first launch → create PIN. Otherwise → verify PIN.
+1. **App starts** → [app/_layout.tsx](../app/_layout.tsx) loads — wraps everything in ThemeProvider, tRPC Provider, QueryClient, and SafeAreaProvider
+2. **PIN Lock** → [app/(pin-lock)/index.tsx](../app/(pin-lock)/index.tsx) checks if a PIN exists. If first launch → create PIN. Otherwise → verify PIN.
 3. **After PIN** → Navigates to `/(tabs)` — the main tab navigator
-4. **Every screen** reads/writes data through [lib/storage.ts](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/lib/storage.ts), which uses AsyncStorage under the hood
-5. **All data types** are defined in [lib/types.ts](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/lib/types.ts)
+4. **Every screen** reads/writes data through [lib/storage.ts](../lib/storage.ts), which uses AsyncStorage under the hood
+5. **All data types** are defined in [lib/types.ts](../lib/types.ts)
 
 ---
 
@@ -323,16 +335,17 @@ graph TB
 
 ### 6.1 Root Configuration Files
 
-#### [`app.config.ts`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/app.config.ts)
+#### [`app.config.ts`](../app.config.ts)
 The **Expo configuration file** — equivalent to `AndroidManifest.xml` + `Info.plist` combined. Defines:
 - App name: `"MyLife Manager"`, slug: `"mylife-manager"`
 - Bundle ID: `com.app.mylifemanager` (used on App Store/Play Store)
 - Icon, splash screen, orientation (portrait-only)
 - Android permissions: `POST_NOTIFICATIONS`
 - Deep linking scheme: `manusylifemanager`
-- Plugins: expo-router, expo-audio, expo-video, expo-splash-screen, expo-build-properties
+- Plugins: expo-router, expo-splash-screen, expo-build-properties
+- Configured to generate standalone `.apk` builds via `eas.json`.
 
-#### [`package.json`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/package.json)
+#### [`package.json`](../package.json)
 Defines all dependencies and npm scripts:
 - **`pnpm dev`** — Runs server + metro concurrently
 - **`pnpm dev:metro`** — Runs just the Expo dev server (what you need)
@@ -342,7 +355,7 @@ Defines all dependencies and npm scripts:
 - **`pnpm qr`** — Generate QR code image for Expo URL
 - Package manager: **pnpm v9.12.0**
 
-#### [`theme.config.js`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/theme.config.js)
+#### [`theme.config.js`](../theme.config.js)
 The **single source of truth for all colors**. Defines 9 color tokens, each with light/dark variants:
 
 | Token | Light | Dark | Usage |
@@ -368,7 +381,7 @@ Expo Router uses **file-based routing** — every `.tsx` file in `app/` automati
 - `app/(more)/bio.tsx` → URL: `/(more)/bio`
 - Folders in parentheses `(tabs)`, `(add)`, `(more)` are **route groups** — they define navigation layouts (tabs, stacks) without affecting the URL
 
-#### [`app/_layout.tsx`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/app/_layout.tsx) — Root Layout
+#### [`app/_layout.tsx`](../app/_layout.tsx) — Root Layout
 **The most important file**. Wraps the entire app with:
 1. `ThemeProvider` — provides light/dark mode
 2. `SafeAreaProvider` — handles notch/status bar insets
@@ -377,13 +390,13 @@ Expo Router uses **file-based routing** — every `.tsx` file in `app/` automati
 5. `Stack` navigator — defines the 5 route groups: (pin-lock), (tabs), (add), (more), oauth/callback
 6. Initializes **Manus runtime** for iframe communication
 
-#### [`app/(pin-lock)/index.tsx`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/app/(pin-lock)/index.tsx) — PIN Lock Screen
+#### [`app/(pin-lock)/index.tsx`](../app/(pin-lock)/index.tsx) — PIN Lock Screen
 - **First launch**: Shows "Set Your PIN" → user enters 6 digits → confirms → saves to AsyncStorage → navigates to main app
 - **Subsequent launches**: Shows "Enter PIN" → user enters 6 digits → verified against stored PIN → navigates to main app
 - **Wrong PIN**: Shows error, clears input
 - Uses custom numpad (0-9 buttons + delete)
 
-#### [`app/(tabs)/_layout.tsx`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/app/(tabs)/_layout.tsx) — Tab Bar
+#### [`app/(tabs)/_layout.tsx`](../app/(tabs)/_layout.tsx) — Tab Bar
 Defines the 5 bottom tabs:
 1. **Home** (`index.tsx`) — house icon
 2. **Daily** (`daily.tsx`) — list icon
@@ -393,20 +406,20 @@ Defines the 5 bottom tabs:
 
 Uses `HapticTab` for tactile feedback on tab press.
 
-#### [`app/(tabs)/index.tsx`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/app/(tabs)/index.tsx) — Dashboard
+#### [`app/(tabs)/index.tsx`](../app/(tabs)/index.tsx) — Dashboard
 Shows:
 - Greeting based on time of day ("Good morning/afternoon/evening")
 - Current date
 - Quick stats bar: Accounts count, Active subscriptions, Pending tasks
 - Module cards grid (2 columns): tappable cards linking to each section
 
-#### [`app/(tabs)/daily.tsx`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/app/(tabs)/daily.tsx) — Daily Tasks
+#### [`app/(tabs)/daily.tsx`](../app/(tabs)/daily.tsx) — Daily Tasks
 - Date header with completion counter
 - Quick-add task input + blue "+" button
 - Task list with circular checkboxes (green when completed) + delete button
 - **Day transition logic**: When opened on a new day, shows "Carry Over" modal for yesterday's unfinished tasks, and optionally shows yesterday's completion report
 
-#### [`app/(tabs)/projects.tsx`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/app/(tabs)/projects.tsx) — Projects Manager
+#### [`app/(tabs)/projects.tsx`](../app/(tabs)/projects.tsx) — Projects Manager
 - Filter bar: All / Ongoing / Completed / On Hold / Planned
 - Project cards showing: title, status badge, category, description, service count
 - **Service-Account Mapping**: Each project can track which accounts (Google, GitHub) are used for which services (Supabase, AWS, Vercel, etc.)
@@ -414,7 +427,7 @@ Shows:
 - Project detail modal showing linked services
 - **ServiceAccountEditor** sub-component for linking accounts to services
 
-#### [`app/(tabs)/tracker.tsx`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/app/(tabs)/tracker.tsx) — Tracker (553 lines!)
+#### [`app/(tabs)/tracker.tsx`](../app/(tabs)/tracker.tsx) — Tracker (553 lines!)
 The largest screen — contains 4 sub-tabs:
 
 1. **Accounts**: Search + category filter, show/hide passwords, copy to clipboard, inline edit modal
@@ -424,7 +437,7 @@ The largest screen — contains 4 sub-tabs:
 
 Each sub-tab has its own add route (`/(add)/account`, etc.) and inline edit modals.
 
-#### [`app/(tabs)/more.tsx`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/app/(tabs)/more.tsx) — More/Settings
+#### [`app/(tabs)/more.tsx`](../app/(tabs)/more.tsx) — More/Settings
 - Bio profile preview card (shows initials avatar, name, education)
 - Menu items: Bio Data, Notes, Competitions, Events, Venues, Change PIN, Backup & Restore
 - **Change PIN modal**: Old PIN → New PIN → Confirm New PIN (3-step flow)
@@ -439,7 +452,8 @@ All 4 forms follow the same pattern:
 
 #### More Screens (`app/(more)/`)
 - **bio.tsx**: Full profile editor with sections (Personal, Education, Social/Professional, Notes)
-- **notes.tsx**: CRUD notes with category, content, timestamps
+- **notes.tsx**: List of notes, searches, categories
+- **note-editor.tsx**: Full-screen native document editor with debounced auto-save and keyboard avoidance
 - **competitions.tsx**: CRUD competitions with status (upcoming/ongoing/completed)
 - **events.tsx**: CRUD events with type (meeting/deadline/conference/hackathon/personal)
 - **venues.tsx**: CRUD venues with name, address, city
@@ -449,7 +463,7 @@ All 4 forms follow the same pattern:
 
 ### 6.3 Core Logic (lib/ directory)
 
-#### [`lib/types.ts`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/lib/types.ts) — All Data Types
+#### [`lib/types.ts`](../lib/types.ts) — All Data Types
 Defines TypeScript interfaces for every data entity:
 
 | Interface | Key Fields |
@@ -469,7 +483,7 @@ Defines TypeScript interfaces for every data entity:
 | `ProjectServiceAccount` | service, accountEmail, accountId |
 | `AppSettings` | pinSet, lastOpenDate, lastReportDate |
 
-#### [`lib/storage.ts`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/lib/storage.ts) — The Data Layer
+#### [`lib/storage.ts`](../lib/storage.ts) — The Data Layer
 **The heart of the app**. Provides CRUD operations for every entity using AsyncStorage:
 
 ```
@@ -491,7 +505,7 @@ Special methods:
 
 IDs are generated as: `Date.now().toString(36) + Math.random().toString(36).substring(2,9)`
 
-#### [`lib/theme-provider.tsx`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/lib/theme-provider.tsx) — Theme System
+#### [`lib/theme-provider.tsx`](../lib/theme-provider.tsx) — Theme System
 Provides `ThemeContext` with:
 - `colorScheme` — current theme ("light" or "dark")
 - `setColorScheme()` — switches theme globally
@@ -505,16 +519,16 @@ Provides `ThemeContext` with:
 
 ### 6.4 Components
 
-#### [`components/screen-container.tsx`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/components/screen-container.tsx)
+#### [`components/screen-container.tsx`](../components/screen-container.tsx)
 Wraps every screen with:
 - `View` with `bg-background` (extends to edges including status bar)
 - `SafeAreaView` (keeps content within safe bounds)
 - Inner `View` for content area
 
-#### [`components/ui/icon-symbol.tsx`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/components/ui/icon-symbol.tsx)
+#### [`components/ui/icon-symbol.tsx`](../components/ui/icon-symbol.tsx)
 Maps **SF Symbols names** (Apple's icon system) to **Material Icons** (Google's icon system). Contains ~70 icon mappings. Used everywhere in the app. On iOS, there's a separate `icon-symbol.ios.tsx` that uses native SF Symbols instead.
 
-#### [`components/haptic-tab.tsx`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/components/haptic-tab.tsx)
+#### [`components/haptic-tab.tsx`](../components/haptic-tab.tsx)
 Wraps tab bar buttons to trigger haptic vibration on press (iOS/Android only, not web).
 
 ---
@@ -524,20 +538,20 @@ Wraps tab bar buttons to trigger haptic vibration on press (iOS/Android only, no
 > [!IMPORTANT]
 > The server is a **Manus platform template feature** for OAuth authentication. Your app stores all data locally via AsyncStorage and **doesn't depend on the server for its core functionality**.
 
-#### [`server/_core/index.ts`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/server/_core/index.ts) — Express Entry Point
+#### [`server/_core/index.ts`](../server/_core/index.ts) — Express Entry Point
 - Starts Express on port 3000 (finds next available if busy)
 - CORS enabled (reflects origin for credential support)
 - Routes: `/api/health`, `/api/trpc/*`, OAuth routes, storage proxy
 
-#### [`server/routers.ts`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/server/routers.ts) — API Routes
+#### [`server/routers.ts`](../server/routers.ts) — API Routes
 - `system.health` — health check
 - `auth.me` — get current user
 - `auth.logout` — clear session cookie
 
-#### [`server/db.ts`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/server/db.ts) — Database
+#### [`server/db.ts`](../server/db.ts) — Database
 Uses Drizzle ORM with MySQL. Has `upsertUser()` and `getUserByOpenId()`.
 
-#### [`drizzle/schema.ts`](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/drizzle/schema.ts) — DB Schema
+#### [`drizzle/schema.ts`](../drizzle/schema.ts) — DB Schema
 Single `users` table: id, openId, name, email, loginMethod, role, timestamps.
 
 ---
@@ -546,9 +560,10 @@ Single `users` table: id, openId, name, email, loginMethod, role, timestamps.
 
 | Hook | File | Purpose |
 |---|---|---|
-| `useColors()` | [use-colors.ts](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/hooks/use-colors.ts) | Returns current theme's color palette object |
-| `useAuth()` | [use-auth.ts](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/hooks/use-auth.ts) | Manages auth state (user, loading, logout) — for Manus OAuth |
-| `useColorScheme()` | [use-color-scheme.ts](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/hooks/use-color-scheme.ts) | Returns system light/dark preference |
+| `useColors()` | [use-colors.ts](../hooks/use-colors.ts) | Returns current theme's color palette object |
+| `useAuth()` | [use-auth.ts](../hooks/use-auth.ts) | Manages auth state (user, loading, logout) — for Manus OAuth |
+| `useColorScheme()` | [use-color-scheme.ts](../hooks/use-color-scheme.ts) | Returns system light/dark preference (native). |
+| `useColorScheme.web()` | [use-color-scheme.web.ts](../hooks/use-color-scheme.web.ts) | Custom hook for web that syncs directly with `ThemeContext` instead of relying on native appearance APIs, ensuring light/dark mode toggles work reliably in browsers. |
 
 ---
 
@@ -556,9 +571,9 @@ Single `users` table: id, openId, name, email, loginMethod, role, timestamps.
 
 | Script | Command | Purpose |
 |---|---|---|
-| [generate_qr.mjs](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/scripts/generate_qr.mjs) | `pnpm qr "exp://..."` | Creates a QR code PNG from an Expo URL |
-| [load-env.js](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/scripts/load-env.js) | Auto-loaded by app.config.ts | Custom .env loader that prioritizes system env vars |
-| [reset-project.js](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/scripts/reset-project.js) | Manual | Resets project to clean template state |
+| [generate_qr.mjs](../scripts/generate_qr.mjs) | `pnpm qr "exp://..."` | Creates a QR code PNG from an Expo URL |
+| [load-env.js](../scripts/load-env.js) | Auto-loaded by app.config.ts | Custom .env loader that prioritizes system env vars |
+| [reset-project.js](../scripts/reset-project.js) | Manual | Resets project to clean template state |
 
 ---
 
@@ -605,12 +620,11 @@ All save/add actions trigger haptic vibration on native:
 if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
 ```
 
-### Pattern 3: Modal Forms
-Add/Edit forms use React Native `<Modal>` with:
-- Semi-transparent overlay (`rgba(0,0,0,0.5)`)
-- White bottom sheet with rounded top corners
-- Drag handle indicator at top
-- Cancel + Save/Done buttons
+### Pattern 3: Form Fields & Bottom Sheet Modals
+The app standardizes forms using a custom `BottomSheetModal` and `FormField` components:
+- `BottomSheetModal` gives an iOS-style rounded sheet with drag handle and spring animations.
+- `FormField` wraps inputs with consistent labels and styling.
+- `ScreenHeader` provides unified navigation bars.
 
 ---
 
@@ -656,16 +670,19 @@ npm install -g pnpm@9.12.0
 pnpm install
 ```
 
-### Issue 3: expo-clipboard Import Error
-The Tracker screen imports `expo-clipboard` which may need to be installed or may have version compatibility issues with Expo SDK 54.
+### Issue 3: Invalid Native Module Versions
+If the standalone Android APK crashes immediately on startup, it is likely due to ABI incompatibilities with native dependencies. Ensure `expo-clipboard` is pinned precisely to `~8.0.8` (or the version recommended by `npx expo-doctor`). Do not upgrade native modules out of band with the Expo SDK.
 
 ### Issue 4: Debug Console.log in Theme Provider
-[theme-provider.tsx line 64](file:///c:/Users/sithu/MyWorks/My%20Softwares/Mobile_Apps/my_life_manager/lib/theme-provider.tsx#L64) has `console.log(value, themeVariables)` which logs every render — performance issue but shouldn't cause crashes.
+[theme-provider.tsx line 64](../lib/theme-provider.tsx#L64) has `console.log(value, themeVariables)` which logs every render — performance issue but shouldn't cause crashes.
 
 ### Issue 5: Server Environment Variables Missing
 If you run `pnpm dev` (which starts the server), it will fail because `DATABASE_URL` and OAuth env vars aren't set. **Use `pnpm dev:metro` instead.**
 
-### Issue 6: Initial PIN Screen Auto-Complete Bug
+### Issue 6: React Compiler Incompatibility
+In Expo SDK 54 / React 19, enabling `experiments: { reactCompiler: true }` in `app.config.ts` can cause invalid bytecode optimization when compiling Reanimated worklets or NativeWind interop classes, leading to immediate native crashes. Keep it disabled.
+
+### Issue 7: Initial PIN Screen Auto-Complete Bug
 The PIN screen calls `verifyPin()` immediately when 6 digits are entered (inside `handleDigit`), but if AsyncStorage is slow, the PIN check might race.
 
 ### Next Steps

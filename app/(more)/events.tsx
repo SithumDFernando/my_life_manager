@@ -11,6 +11,9 @@ import { BottomSheetModal } from "@/components/ui/bottom-sheet-modal";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormField } from "@/components/ui/form-field";
 import { ScreenHeader } from "@/components/ui/screen-header";
+import { DatePickerField } from "@/components/ui/date-picker-field";
+import { LocationLinkButton } from "@/components/ui/location-link-button";
+import { showAlert } from "@/lib/alert";
 
 const TYPE_OPTIONS: { key: Event["type"]; label: string }[] = [
   { key: "meeting", label: "Meeting" },
@@ -28,7 +31,7 @@ export default function EventsScreen() {
   const [showAdd, setShowAdd] = useState(false);
   const [editingEvent, setEditingEvent] = useState<Event | null>(null);
   const [form, setForm] = useState({
-    title: "", description: "", date: "", venueId: "", type: "meeting" as Event["type"], notes: "",
+    title: "", description: "", date: "", isAllDay: true, startTime: "", endTime: "", venueId: "", mapUrl: "", type: "meeting" as Event["type"], notes: "",
   });
 
   const loadEvents = useCallback(async () => {
@@ -41,11 +44,27 @@ export default function EventsScreen() {
   );
 
   const resetForm = () => {
-    setForm({ title: "", description: "", date: "", venueId: "", type: "meeting", notes: "" });
+    setForm({ title: "", description: "", date: "", isAllDay: true, startTime: "", endTime: "", venueId: "", mapUrl: "", type: "meeting", notes: "" });
+  };
+
+  const validate = () => {
+    if (!form.title.trim()) {
+      showAlert("Missing Title", "Please enter an event title before saving.");
+      return false;
+    }
+    if (!form.date.trim()) {
+      showAlert("Missing Date", "Please select a date for the event.");
+      return false;
+    }
+    if (!form.isAllDay && form.startTime && form.endTime && form.startTime > form.endTime) {
+      showAlert("Invalid Time Range", "Start time cannot be after end time.");
+      return false;
+    }
+    return true;
   };
 
   const handleAdd = async () => {
-    if (!form.title.trim() || !form.date.trim()) return;
+    if (!validate()) return;
     await eventsStorage.add(form);
     resetForm();
     setShowAdd(false);
@@ -53,7 +72,7 @@ export default function EventsScreen() {
   };
 
   const handleUpdate = async () => {
-    if (!editingEvent || !form.title.trim()) return;
+    if (!editingEvent || !validate()) return;
     await eventsStorage.update(editingEvent.id, form);
     setEditingEvent(null);
     resetForm();
@@ -61,7 +80,7 @@ export default function EventsScreen() {
   };
 
   const handleDelete = (id: string, title: string) => {
-    Alert.alert("Delete", `Delete "${title}"?`, [
+    showAlert("Delete", `Delete "${title}"?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: async () => { await eventsStorage.delete(id); loadEvents(); } },
     ]);
@@ -71,7 +90,9 @@ export default function EventsScreen() {
     setEditingEvent(evt);
     setForm({
       title: evt.title, description: evt.description || "", date: evt.date,
-      venueId: evt.venueId || "", type: evt.type, notes: evt.notes || "",
+      isAllDay: evt.isAllDay ?? (evt.startTime ? false : true),
+      startTime: evt.startTime || "", endTime: evt.endTime || "",
+      venueId: evt.venueId || "", mapUrl: evt.mapUrl || "", type: evt.type, notes: evt.notes || "",
     });
   };
 
@@ -96,13 +117,21 @@ export default function EventsScreen() {
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
                 <View style={{ flex: 1 }}>
                   <Text style={{ fontSize: 15, fontWeight: "600", color: colors.foreground }}>{evt.title}</Text>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4 }}>
-                    <Text style={{ fontSize: 12, color: colors.primary }}>{evt.date}</Text>
-                    <View style={{ padding: 3, borderRadius: 6, backgroundColor: colors.primary + "15" }}>
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 4, flexWrap: "wrap" }}>
+                    <Text style={{ fontSize: 12, color: colors.primary, fontWeight: "500" }}>
+                      {evt.date}
+                      {!evt.isAllDay && evt.startTime ? ` • ${evt.startTime}${evt.endTime ? ` - ${evt.endTime}` : ""}` : " • All day"}
+                    </Text>
+                    <View style={{ paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6, backgroundColor: colors.primary + "15" }}>
                       <Text style={{ fontSize: 11, fontWeight: "600", color: colors.primary, textTransform: "capitalize" }}>{evt.type}</Text>
                     </View>
                   </View>
                   {evt.description ? <Text style={{ fontSize: 12, color: colors.muted, marginTop: 6, lineHeight: 16 }}>{evt.description}</Text> : null}
+                  {evt.mapUrl ? (
+                    <View style={{ marginTop: 8 }}>
+                      <LocationLinkButton mapUrl={evt.mapUrl} address="View on Maps" />
+                    </View>
+                  ) : null}
                 </View>
                 <Pressable onPress={() => handleDelete(evt.id, evt.title)} style={{ padding: 4 }}>
                   <IconSymbol name="trash" size={18} color={colors.error} />
@@ -116,9 +145,33 @@ export default function EventsScreen() {
       {/* Add/Edit Modal */}
       <BottomSheetModal visible={showAdd || !!editingEvent} onClose={() => { setShowAdd(false); setEditingEvent(null); resetForm(); }} title={editingEvent ? "Edit Event" : "Add Event"} scrollable maxHeight="85%">
         <FormField label="Title" value={form.title} onChangeText={(v) => setForm({ ...form, title: v })} placeholder="Event title" />
-        <FormField label="Date (YYYY-MM-DD)" value={form.date} onChangeText={(v) => setForm({ ...form, date: v })} placeholder="YYYY-MM-DD" />
+        <DatePickerField mode="date" label="Date" value={form.date} onDateChange={(d) => setForm({ ...form, date: d })} />
+
+        {/* All-Day Toggle */}
+        <Pressable
+          onPress={() => setForm({ ...form, isAllDay: !form.isAllDay })}
+          style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 8, marginBottom: 12 }}
+        >
+          <Text style={{ fontSize: 14, color: colors.foreground, fontWeight: "500" }}>All-day Event</Text>
+          <View style={{ width: 44, height: 24, borderRadius: 12, backgroundColor: form.isAllDay ? colors.primary : colors.surface, padding: 2, borderWidth: 1, borderColor: colors.border, justifyContent: "center" }}>
+            <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: "#FFFFFF", alignSelf: form.isAllDay ? "flex-end" : "flex-start" }} />
+          </View>
+        </Pressable>
+
+        {/* Time Fields (if not all day) */}
+        {!form.isAllDay && (
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <View style={{ flex: 1 }}>
+              <DatePickerField mode="time" label="Start Time" value={form.startTime} onDateChange={(t) => setForm({ ...form, startTime: t })} placeholder="09:00" />
+            </View>
+            <View style={{ flex: 1 }}>
+              <DatePickerField mode="time" label="End Time" value={form.endTime} onDateChange={(t) => setForm({ ...form, endTime: t })} placeholder="17:00" />
+            </View>
+          </View>
+        )}
         <FormField label="Description" value={form.description} onChangeText={(v) => setForm({ ...form, description: v })} placeholder="Description" multiline />
         <FormField label="Venue (optional)" value={form.venueId} onChangeText={(v) => setForm({ ...form, venueId: v })} placeholder="Venue" />
+        <FormField label="Map URL (optional)" value={form.mapUrl} onChangeText={(v) => setForm({ ...form, mapUrl: v })} placeholder="Google Maps link" />
 
         <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 8 }}>Type</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, marginBottom: 16 }}>

@@ -50,6 +50,15 @@
 - [x] Build Full-Screen Notes Editor (with debounced auto-save)
 - [x] Refactor target screens to use new modular UI components
 
+## Phase 1.5: Interactive Pickers, Validation & Form UX (Complete)
+- [x] Wire `DatePickerField` across all forms (Events, Competitions, Subscriptions, Projects, Reading, Achievements, Bio)
+- [x] Add Web platform fallback support (`date-picker-field.web.tsx`) for browser HTML5 calendar/time pickers
+- [x] Wire `LocationLinkButton` with Google Maps deep linking in Venues and Events
+- [x] Add Event scheduling features: All-Day toggle, Start Time & End Time pickers
+- [x] Fix `BottomSheetModal` scrolling hierarchy for long forms on Web & Mobile
+- [x] Create cross-platform alert helper (`lib/alert.ts`) supporting `window.alert`/`window.confirm` on Web and native dialogs on Mobile
+- [x] Implement comprehensive form validations and user warnings on Save across all modules
+
 ## Phase 2: Navigation & Habits Hub
 - [ ] Reorganize Tab Bar (Dedicated Habits Tab + Projects moved to Tracker)
 - [ ] Build Habits Data Models & Storage Layer (`lib/types.ts` & `lib/storage.ts`)

@@ -7,6 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Clipboard from "expo-clipboard";
 import * as Haptics from "expo-haptics";
 import { useColors } from "@/hooks/use-colors";
+import { showAlert } from "@/lib/alert";
 
 const EXPORT_KEYS = [
   "@mylife_accounts",
@@ -49,9 +50,9 @@ export default function BackupScreen() {
       setShowExport(true);
       await Clipboard.setStringAsync(json);
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("Exported", "Backup data has been copied to your clipboard. Save it somewhere safe!");
+      showAlert("Exported", "Backup data has been copied to your clipboard. Save it somewhere safe!");
     } catch (err) {
-      Alert.alert("Error", "Failed to export data.");
+      showAlert("Error", "Failed to export data.");
     } finally {
       setExporting(false);
     }
@@ -72,10 +73,10 @@ export default function BackupScreen() {
         count++;
       }
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("Imported", `Successfully imported ${count} data sets. Please restart the app.`);
+      showAlert("Imported", `Successfully imported ${count} data sets. Please restart the app.`);
       setImportText("");
     } catch (err) {
-      Alert.alert("Error", "Invalid JSON data. Please check the format.");
+      showAlert("Error", "Invalid JSON data. Please check the format.");
     } finally {
       setImporting(false);
     }

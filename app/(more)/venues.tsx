@@ -11,6 +11,8 @@ import { BottomSheetModal } from "@/components/ui/bottom-sheet-modal";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormField } from "@/components/ui/form-field";
 import { ScreenHeader } from "@/components/ui/screen-header";
+import { LocationLinkButton } from "@/components/ui/location-link-button";
+import { showAlert } from "@/lib/alert";
 
 export default function VenuesScreen() {
   const router = useRouter();
@@ -18,7 +20,7 @@ export default function VenuesScreen() {
   const [venList, setVenList] = useState<Venue[]>([]);
   const [showAdd, setShowAdd] = useState(false);
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
-  const [form, setForm] = useState({ name: "", address: "", city: "", notes: "" });
+  const [form, setForm] = useState({ name: "", address: "", city: "", mapUrl: "", notes: "" });
 
   const loadVenues = useCallback(async () => {
     const data = await venuesStorage.getAll();
@@ -30,11 +32,14 @@ export default function VenuesScreen() {
   );
 
   const resetForm = () => {
-    setForm({ name: "", address: "", city: "", notes: "" });
+    setForm({ name: "", address: "", city: "", mapUrl: "", notes: "" });
   };
 
   const handleAdd = async () => {
-    if (!form.name.trim()) return;
+    if (!form.name.trim()) {
+      showAlert("Missing Name", "Please enter a venue name before saving.");
+      return;
+    }
     await venuesStorage.add(form);
     resetForm();
     setShowAdd(false);
@@ -42,7 +47,11 @@ export default function VenuesScreen() {
   };
 
   const handleUpdate = async () => {
-    if (!editingVenue || !form.name.trim()) return;
+    if (!editingVenue) return;
+    if (!form.name.trim()) {
+      showAlert("Missing Name", "Please enter a venue name before saving.");
+      return;
+    }
     await venuesStorage.update(editingVenue.id, form);
     setEditingVenue(null);
     resetForm();
@@ -50,7 +59,7 @@ export default function VenuesScreen() {
   };
 
   const handleDelete = (id: string, name: string) => {
-    Alert.alert("Delete", `Delete "${name}"?`, [
+    showAlert("Delete", `Delete "${name}"?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: async () => { await venuesStorage.delete(id); loadVenues(); } },
     ]);
@@ -58,7 +67,7 @@ export default function VenuesScreen() {
 
   const openEdit = (venue: Venue) => {
     setEditingVenue(venue);
-    setForm({ name: venue.name, address: venue.address || "", city: venue.city || "", notes: venue.notes || "" });
+    setForm({ name: venue.name, address: venue.address || "", city: venue.city || "", mapUrl: venue.mapUrl || "", notes: venue.notes || "" });
   };
 
   return (
@@ -84,6 +93,11 @@ export default function VenuesScreen() {
                   <Text style={{ fontSize: 15, fontWeight: "600", color: colors.foreground }}>{venue.name}</Text>
                   {venue.city ? <Text style={{ fontSize: 12, color: colors.primary, marginTop: 4 }}>{venue.city}</Text> : null}
                   {venue.address ? <Text style={{ fontSize: 12, color: colors.muted, marginTop: 4 }}>{venue.address}</Text> : null}
+                  {venue.mapUrl ? (
+                    <View style={{ marginTop: 8 }}>
+                      <LocationLinkButton mapUrl={venue.mapUrl} address="View on Maps" />
+                    </View>
+                  ) : null}
                 </View>
                 <Pressable onPress={() => handleDelete(venue.id, venue.name)} style={{ padding: 4 }}>
                   <IconSymbol name="trash" size={18} color={colors.error} />
@@ -99,6 +113,7 @@ export default function VenuesScreen() {
         <FormField label="Name" value={form.name} onChangeText={(v) => setForm({ ...form, name: v })} placeholder="e.g., Central Park, Starbucks" />
         <FormField label="Address" value={form.address} onChangeText={(v) => setForm({ ...form, address: v })} placeholder="Full address" />
         <FormField label="City" value={form.city} onChangeText={(v) => setForm({ ...form, city: v })} placeholder="City" />
+        <FormField label="Map URL (optional)" value={form.mapUrl} onChangeText={(v) => setForm({ ...form, mapUrl: v })} placeholder="Google Maps link" />
         <FormField label="Notes" value={form.notes} onChangeText={(v) => setForm({ ...form, notes: v })} placeholder="Additional notes" multiline />
 
         <View style={{ flexDirection: "row", gap: 12, marginTop: 12 }}>

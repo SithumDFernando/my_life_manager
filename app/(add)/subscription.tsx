@@ -4,10 +4,12 @@ import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { FormField } from "@/components/ui/form-field";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import { subscriptions as subStorage } from "@/lib/storage";
 import type { Subscription } from "@/lib/types";
 import { CURRENCIES, SUBSCRIPTION_CATEGORIES } from "@/lib/constants";
 import { useColors } from "@/hooks/use-colors";
+import { showAlert } from "@/lib/alert";
 import * as Haptics from "expo-haptics";
 
 const BILLING_OPTIONS: { key: Subscription["billingCycle"]; label: string }[] = [
@@ -33,7 +35,14 @@ export default function AddSubscriptionScreen() {
   });
 
   const handleSave = async () => {
-    if (!form.name.trim()) return;
+    if (!form.name.trim()) {
+      showAlert("Missing Name", "Please enter a subscription name before saving.");
+      return;
+    }
+    if (form.cost && isNaN(Number(form.cost))) {
+      showAlert("Invalid Cost", "Please enter a valid numeric cost amount.");
+      return;
+    }
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     await subStorage.add({
       name: form.name, category: form.category, cost: parseFloat(form.cost) || 0,
@@ -91,7 +100,7 @@ export default function AddSubscriptionScreen() {
             ))}
           </View>
 
-          <FormField label="Renewal Date" value={form.renewalDate} onChangeText={(v) => setForm({ ...form, renewalDate: v })} placeholder="YYYY-MM-DD" />
+          <DatePickerField mode="date" label="Renewal Date" value={form.renewalDate} onDateChange={(d) => setForm({ ...form, renewalDate: d })} />
 
           <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 4 }}>Status</Text>
           <View style={{ flexDirection: "row", gap: 6, marginBottom: 12 }}>

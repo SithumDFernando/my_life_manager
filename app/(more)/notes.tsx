@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import { useFocusEffect , useRouter } from "expo-router";
-import { ScrollView, Text, View, Pressable, Alert } from "react-native";
+import { ScrollView, Text, View, Pressable } from "react-native";
 
 import { ScreenContainer } from "@/components/screen-container";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -9,6 +9,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { notes as notesStorage } from "@/lib/storage";
 import type { Note } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
+import { showAlert } from "@/lib/alert";
 
 export default function NotesScreen() {
   const router = useRouter();
@@ -25,7 +26,7 @@ export default function NotesScreen() {
   );
 
   const handleDelete = (id: string, title: string) => {
-    Alert.alert("Delete Note", `Delete "${title}"?`, [
+    showAlert("Delete Note", `Delete "${title}"?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: async () => { await notesStorage.delete(id); loadNotes(); } },
     ]);

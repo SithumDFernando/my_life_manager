@@ -7,6 +7,7 @@ import { FormField } from "@/components/ui/form-field";
 import { accounts as accountsStorage } from "@/lib/storage";
 import type { AccountCategory } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
+import { showAlert } from "@/lib/alert";
 import * as Haptics from "expo-haptics";
 
 
@@ -27,7 +28,10 @@ export default function AddAccountScreen() {
   });
 
   const handleSave = async () => {
-    if (!form.name.trim()) return;
+    if (!form.name.trim()) {
+      showAlert("Missing Name", "Please enter an account name before saving.");
+      return;
+    }
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     await accountsStorage.add(form);
     router.back();

@@ -8,6 +8,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { bioData, pinStorage } from "@/lib/storage";
 import { useColors } from "@/hooks/use-colors";
 import { useThemeContext } from "@/lib/theme-provider";
+import { showAlert } from "@/lib/alert";
 import * as Haptics from "expo-haptics";
 
 import type { ColorScheme } from "@/constants/theme";
@@ -91,7 +92,7 @@ export default function MoreScreen() {
       }
       await pinStorage.set(newPin);
       if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      Alert.alert("Success", "PIN changed successfully!");
+      showAlert("Success", "PIN changed successfully!");
       setShowChangePin(false);
     }
   };

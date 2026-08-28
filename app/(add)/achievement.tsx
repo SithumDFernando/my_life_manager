@@ -4,8 +4,10 @@ import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { achievements as achStorage } from "@/lib/storage";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import type { Achievement } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
+import { showAlert } from "@/lib/alert";
 import * as Haptics from "expo-haptics";
 
 
@@ -27,7 +29,10 @@ export default function AddAchievementScreen() {
   });
 
   const handleSave = async () => {
-    if (!form.title.trim()) return;
+    if (!form.title.trim()) {
+      showAlert("Missing Title", "Please enter an achievement title before saving.");
+      return;
+    }
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     await achStorage.add(form);
     router.back();
@@ -64,9 +69,7 @@ export default function AddAchievementScreen() {
           <TextInput value={form.title} onChangeText={(v) => setForm({ ...form, title: v })}
             placeholder="e.g., 1st Place - TechHack 2024" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
 
-          <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Date</Text>
-          <TextInput value={form.date} onChangeText={(v) => setForm({ ...form, date: v })}
-            placeholder="YYYY-MM-DD" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
+          <DatePickerField label="Date" value={form.date} onDateChange={(d) => setForm({ ...form, date: d })} />
 
           <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6, marginTop: 12 }}>Place / Position</Text>
           <TextInput value={form.place} onChangeText={(v) => setForm({ ...form, place: v })}

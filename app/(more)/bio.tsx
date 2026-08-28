@@ -6,6 +6,7 @@ import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { bioData as bioDataStorage } from "@/lib/storage";
 import { useColors } from "@/hooks/use-colors";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import * as Haptics from "expo-haptics";
 
 
@@ -75,7 +76,7 @@ export default function BioScreen() {
         <View style={{ gap: 16, marginBottom: 20 }}>
           <Section title="Personal Info" colors={colors}>
             <InputField label="Full Name" value={form.fullName} onChangeText={(v) => setForm({ ...form, fullName: v })} colors={colors} />
-            <InputField label="Date of Birth" value={form.dateOfBirth} onChangeText={(v) => setForm({ ...form, dateOfBirth: v })} placeholder="YYYY-MM-DD" colors={colors} />
+            <DatePickerField label="Date of Birth" value={form.dateOfBirth} onDateChange={(v) => setForm({ ...form, dateOfBirth: v })} />
             <InputField label="Phone" value={form.phone} onChangeText={(v) => setForm({ ...form, phone: v })} colors={colors} />
             <InputField label="Email" value={form.email} onChangeText={(v) => setForm({ ...form, email: v })} colors={colors} />
             <InputField label="Address" value={form.address} onChangeText={(v) => setForm({ ...form, address: v })} colors={colors} />

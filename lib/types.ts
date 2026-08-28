@@ -85,6 +85,9 @@ export interface Event {
   title: string;
   description?: string;
   date: string;
+  isAllDay?: boolean;
+  startTime?: string;
+  endTime?: string;
   venueId?: string;
   mapUrl?: string;
   type: "meeting" | "deadline" | "conference" | "hackathon" | "personal" | "other";

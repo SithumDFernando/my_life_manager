@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
-import { ScrollView, Text, View, Pressable, TextInput, Alert, Modal , Platform } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { ScrollView, Text, View, Pressable, TextInput, Platform } from "react-native";
 import { ScreenContainer } from "@/components/screen-container";
 import { BottomSheetModal } from "@/components/ui/bottom-sheet-modal";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -8,6 +8,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { tasks, dailyReports, settings as settingsStorage } from "@/lib/storage";
 import type { Task, DailyReport } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
+import { showAlert } from "@/lib/alert";
 import * as Haptics from "expo-haptics";
 
 
@@ -79,7 +80,7 @@ export default function DailyScreen() {
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert("Delete Task", "Remove this task?", [
+    showAlert("Delete Task", "Remove this task?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete", style: "destructive",

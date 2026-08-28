@@ -11,6 +11,8 @@ interface FormFieldProps {
   secureTextEntry?: boolean;
   keyboardType?: KeyboardTypeOptions;
   autoCapitalize?: "none" | "sentences" | "words" | "characters";
+  error?: string;
+  required?: boolean;
 }
 
 export function FormField({
@@ -22,12 +24,19 @@ export function FormField({
   secureTextEntry = false,
   keyboardType = "default",
   autoCapitalize = "sentences",
+  error,
+  required = false,
 }: FormFieldProps) {
   const colors = useColors();
 
   return (
     <View style={{ marginBottom: 12 }}>
-      {!!label && <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>{label}</Text>}
+      {!!label && (
+        <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 }}>
+          <Text style={{ fontSize: 13, color: colors.muted }}>{label}</Text>
+          {required && <Text style={{ fontSize: 13, color: colors.error, marginLeft: 3 }}>*</Text>}
+        </View>
+      )}
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -47,8 +56,15 @@ export function FormField({
           color: colors.foreground,
           textAlignVertical: multiline ? "top" : "center",
           minHeight: multiline ? 100 : 42,
+          borderWidth: 1,
+          borderColor: error ? colors.error : colors.border,
         }}
       />
+      {!!error && (
+        <Text style={{ fontSize: 12, color: colors.error, marginTop: 4 }}>
+          {error}
+        </Text>
+      )}
     </View>
   );
 }

@@ -16,24 +16,10 @@ export function BottomSheetModal({
   onClose,
   title,
   children,
-  maxHeight,
+  maxHeight = "85%",
   scrollable = false,
 }: BottomSheetModalProps) {
   const colors = useColors();
-
-  const content = (
-    <View style={{ backgroundColor: colors.background, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingBottom: 40, maxHeight }}>
-      <View style={{ alignItems: "center", marginBottom: 20 }}>
-        <View style={{ width: 40, height: 4, backgroundColor: colors.border, borderRadius: 2 }} />
-      </View>
-      {title && (
-        <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginBottom: 16 }}>
-          {title}
-        </Text>
-      )}
-      {children}
-    </View>
-  );
 
   return (
     <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
@@ -45,14 +31,49 @@ export function BottomSheetModal({
           style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" }} 
           onPress={onClose}
         >
-          <Pressable onPress={(e) => e.stopPropagation()}>
-             {scrollable ? (
-                <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "flex-end" }} bounces={false} showsVerticalScrollIndicator={false}>
-                  {content}
-                </ScrollView>
-             ) : (
-                content
-             )}
+          <Pressable 
+            onPress={(e) => e.stopPropagation()}
+            style={{ 
+              backgroundColor: colors.background, 
+              borderTopLeftRadius: 20, 
+              borderTopRightRadius: 20, 
+              paddingTop: 16, 
+              paddingHorizontal: 20,
+              paddingBottom: Platform.OS === "ios" ? 34 : 24,
+              maxHeight: maxHeight || "85%",
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            {/* Drag handle */}
+            <View style={{ alignItems: "center", marginBottom: 12 }}>
+              <View style={{ width: 40, height: 4, backgroundColor: colors.border, borderRadius: 2 }} />
+            </View>
+
+            {/* Title */}
+            {title && (
+              <Text style={{ fontSize: 20, fontWeight: "700", color: colors.foreground, marginBottom: 14 }}>
+                {title}
+              </Text>
+            )}
+
+            {/* Scrollable / Static Body */}
+            {scrollable ? (
+              <ScrollView 
+                contentContainerStyle={{ paddingBottom: 20 }}
+                showsVerticalScrollIndicator={true}
+                keyboardShouldPersistTaps="handled"
+                nestedScrollEnabled={true}
+                style={{ flexShrink: 1 }}
+              >
+                {children}
+              </ScrollView>
+            ) : (
+              <View style={{ flexShrink: 1 }}>
+                {children}
+              </View>
+            )}
           </Pressable>
         </Pressable>
       </KeyboardAvoidingView>

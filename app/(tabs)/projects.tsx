@@ -6,10 +6,12 @@ import { ScreenContainer } from "@/components/screen-container";
 import { BottomSheetModal } from "@/components/ui/bottom-sheet-modal";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormField } from "@/components/ui/form-field";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { projects as projectsStorage, accounts } from "@/lib/storage";
 import type { Project, ProjectServiceAccount } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
+import { showAlert } from "@/lib/alert";
 import * as Haptics from "expo-haptics";
 
 
@@ -51,7 +53,10 @@ export default function ProjectsScreen() {
   );
 
   const handleAdd = async () => {
-    if (!form.title.trim()) return;
+    if (!form.title.trim()) {
+      showAlert("Missing Title", "Please enter a project title before saving.");
+      return;
+    }
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     await projectsStorage.add({
       ...form,
@@ -63,7 +68,7 @@ export default function ProjectsScreen() {
   };
 
   const handleDelete = (id: string, title: string) => {
-    Alert.alert("Delete Project", `Delete "${title}"?`, [
+    showAlert("Delete Project", `Delete "${title}"?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: async () => { await projectsStorage.delete(id); loadProjects(); } },
     ]);
@@ -176,7 +181,7 @@ export default function ProjectsScreen() {
         <FormField label="Category (e.g., Web App, Mobile)" value={form.category} onChangeText={(v) => setForm({ ...form, category: v })} />
         <FormField label="GitHub Repo URL" value={form.githubRepo} onChangeText={(v) => setForm({ ...form, githubRepo: v })} autoCapitalize="none" keyboardType="url" />
         <FormField label="Tech Stack (comma separated)" value={form.techStack} onChangeText={(v) => setForm({ ...form, techStack: v })} />
-        <FormField label="Start Date (YYYY-MM-DD)" value={form.startDate} onChangeText={(v) => setForm({ ...form, startDate: v })} />
+        <DatePickerField mode="date" label="Start Date" value={form.startDate} onDateChange={(d) => setForm({ ...form, startDate: d })} />
 
         <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 8 }}>Status</Text>
         <View style={{ flexDirection: "row", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>

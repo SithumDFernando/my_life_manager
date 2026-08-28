@@ -4,8 +4,10 @@ import { useRouter } from "expo-router";
 import { ScreenContainer } from "@/components/screen-container";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { readingItems as readingStorage } from "@/lib/storage";
+import { DatePickerField } from "@/components/ui/date-picker-field";
 import type { ReadingItem } from "@/lib/types";
 import { useColors } from "@/hooks/use-colors";
+import { showAlert } from "@/lib/alert";
 import * as Haptics from "expo-haptics";
 
 
@@ -31,7 +33,16 @@ export default function AddReadingScreen() {
   });
 
   const handleSave = async () => {
-    if (!form.title.trim()) return;
+    if (!form.title.trim()) {
+      showAlert("Missing Title", "Please enter a book or article title before saving.");
+      return;
+    }
+    const pages = Number(form.pages) || 0;
+    const read = Number(form.pagesRead) || 0;
+    if (pages > 0 && read > pages) {
+      showAlert("Invalid Pages", "Pages read cannot exceed total pages.");
+      return;
+    }
     if (Platform.OS !== "web") Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     await readingStorage.add({
       type: form.type, title: form.title, author: form.author,
@@ -92,14 +103,10 @@ export default function AddReadingScreen() {
 
           <View style={{ flexDirection: "row", gap: 10, marginTop: 4 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>Start Date</Text>
-              <TextInput value={form.startDate} onChangeText={(v) => setForm({ ...form, startDate: v })}
-                placeholder="YYYY-MM-DD" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
+              <DatePickerField label="Start Date" value={form.startDate} onDateChange={(d) => setForm({ ...form, startDate: d })} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 6 }}>End Date</Text>
-              <TextInput value={form.endDate} onChangeText={(v) => setForm({ ...form, endDate: v })}
-                placeholder="YYYY-MM-DD" style={getInputStyle(colors)} placeholderTextColor={colors.muted} />
+              <DatePickerField label="End Date" value={form.endDate} onDateChange={(d) => setForm({ ...form, endDate: d })} />
             </View>
           </View>
 

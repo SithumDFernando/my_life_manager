@@ -11,6 +11,8 @@ import { BottomSheetModal } from "@/components/ui/bottom-sheet-modal";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FormField } from "@/components/ui/form-field";
 import { ScreenHeader } from "@/components/ui/screen-header";
+import { DatePickerField } from "@/components/ui/date-picker-field";
+import { showAlert } from "@/lib/alert";
 
 const STATUS_OPTIONS: { key: Competition["status"]; label: string }[] = [
   { key: "upcoming", label: "Upcoming" },
@@ -53,8 +55,20 @@ export default function CompetitionsScreen() {
     });
   };
 
+  const validate = () => {
+    if (!form.name.trim()) {
+      showAlert("Missing Name", "Please enter a competition name before saving.");
+      return false;
+    }
+    if (form.startDate && form.endDate && form.startDate > form.endDate) {
+      showAlert("Invalid Date Range", "Start date cannot be after end date.");
+      return false;
+    }
+    return true;
+  };
+
   const handleAdd = async () => {
-    if (!form.name.trim()) return;
+    if (!validate()) return;
     await compStorage.add({
       ...form,
       prizeAmount: form.prizeAmount ? parseFloat(form.prizeAmount) : undefined,
@@ -65,7 +79,7 @@ export default function CompetitionsScreen() {
   };
 
   const handleEdit = async () => {
-    if (!editingComp || !form.name.trim()) return;
+    if (!editingComp || !validate()) return;
     await compStorage.update(editingComp.id, {
       ...form,
       prizeAmount: form.prizeAmount ? parseFloat(form.prizeAmount) : undefined,
@@ -76,7 +90,7 @@ export default function CompetitionsScreen() {
   };
 
   const handleDelete = (id: string, name: string) => {
-    Alert.alert("Delete", `Delete "${name}"?`, [
+    showAlert("Delete", `Delete "${name}"?`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: async () => { await compStorage.delete(id); loadComps(); } },
     ]);
@@ -177,8 +191,8 @@ function CompetitionForm({ form, setForm, onSave, onCancel, colors }: {
         ))}
       </View>
 
-      <FormField label="Start Date (YYYY-MM-DD)" value={form.startDate} onChangeText={(v) => setForm({ ...form, startDate: v })} placeholder="Start Date" />
-      <FormField label="End Date (YYYY-MM-DD)" value={form.endDate} onChangeText={(v) => setForm({ ...form, endDate: v })} placeholder="End Date" />
+      <DatePickerField mode="date" label="Start Date" value={form.startDate} onDateChange={(d) => setForm({ ...form, startDate: d })} />
+      <DatePickerField mode="date" label="End Date (optional)" value={form.endDate} onDateChange={(d) => setForm({ ...form, endDate: d })} />
 
       {/* Result dropdown */}
       <Text style={{ fontSize: 13, color: colors.muted, marginBottom: 8, marginTop: 4 }}>Result</Text>
