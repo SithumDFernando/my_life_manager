@@ -22,6 +22,10 @@ const EXPORT_KEYS = [
   "@mylife_reading_items",
   "@mylife_achievements",
   "@mylife_projects",
+  "@mylife_master_targets",
+  "@mylife_habits",
+  "@mylife_habit_logs",
+  "@mylife_habit_stats",
   "@mylife_settings",
 ];
 

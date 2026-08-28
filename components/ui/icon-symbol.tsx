@@ -100,6 +100,16 @@ const MAPPING = {
   "target": "track-changes",
   "bolt": "bolt",
   "chart.pie.fill": "pie-chart",
+  // Developer & Feedback icons
+  "person.crop.circle.fill": "account-circle",
+  "lightbulb.fill": "lightbulb",
+  "ladybug.fill": "bug-report",
+  "phone.fill": "phone",
+  "bubble.left.and.bubble.right.fill": "forum",
+  "bubble.left.fill": "chat",
+  "sun.max.fill": "light-mode",
+  "moon.fill": "dark-mode",
+  "gear": "settings",
 } as unknown as IconMapping;
 
 export function IconSymbol({

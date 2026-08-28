@@ -44,7 +44,9 @@ export default function MoreScreen() {
     { title: "Events", subtitle: "Upcoming events", icon: "calendar", color: colors.primary, route: "/(more)/events" },
     { title: "Venues", subtitle: "Locations", icon: "map.pin", color: colors.error, route: "/(more)/venues" },
     { title: "Change PIN", subtitle: "Security settings", icon: "lock.fill", color: colors.success, route: null },
-    { title: "Appearance", subtitle: colorScheme === "dark" ? "Dark mode" : "Light mode", icon: "moon.fill", color: colors.primary, route: null, action: "theme" },
+    { title: "Appearance", subtitle: mode === "dark" ? "Dark mode" : mode === "light" ? "Light mode" : "System default", icon: mode === "dark" ? "moon.fill" : mode === "light" ? "sun.max.fill" : "gearshape.fill", color: colors.primary, route: null, action: "theme" },
+    { title: "Developer & Feedback", subtitle: "Info & Suggestions", icon: "info.circle.fill", color: colors.success, route: "/(more)/developer" },
+    { title: "Help Center", subtitle: "App manual & guides", icon: "questionmark.circle.fill", color: colors.primary, route: "/(more)/help" },
     { title: "Backup & Restore", subtitle: "Export / import data", icon: "square.and.arrow.up", color: colors.primary, route: "/(more)/backup" },
   ];
 

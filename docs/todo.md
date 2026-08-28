@@ -71,10 +71,10 @@
 - [x] Build Improve Hub (Master Targets management, Analytics views)
 - [x] Refactor Daily tab (Unified Tasks + Habits checklist, 24h grace window)
 
-## Phase 3: Developer Info, Feedback & Help
-- [ ] Build Developer Showcase & Feedback Modal with Quality Rating Sliders
-- [ ] Build In-App Help Center & Knowledge Base (`app/(more)/help.tsx`)
+## Phase 3: Developer Info, Feedback & Help (Complete)
+- [x] Build Developer Showcase & Feedback Modal with Quality Rating Sliders
+- [x] Build In-App Help Center & Knowledge Base (`app/(more)/help.tsx`)
 
-## Phase 4: Backup & Verification
-- [ ] Update JSON Backup/Restore for Habit Keys
-- [ ] Standalone APK Testing
+## Phase 4: Backup & Verification (Complete)
+- [x] Update JSON Backup/Restore for Habit Keys
+- [x] Standalone APK Testing
